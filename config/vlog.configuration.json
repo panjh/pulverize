@@ -1,0 +1,30 @@
+{
+	"comments": {
+		"lineComment": "//",
+		"blockComment": [ "/*", "*/" ]
+	},
+	"brackets": [
+		["{", "}"],
+		["[", "]"],
+		["(", ")"],
+		["begin", "end"],
+		["case", "endcase"],
+		["casex", "endcase"],
+		["casez", "endcase"],
+		["config", "endconfig"],
+		["fork", "join"],
+		["generate", "endgenerate"],
+		["macromodule", "endmodule"],
+		["module", "endmodule"],
+		["primitive", "endprimitive"],
+		["specify", "endspecify"],
+		["table", "endtable"]
+	],
+
+	"autoClosingPairs": [
+		{"open":"(", "close":")"},
+		{"open":"[", "close":"]"},
+		{"open":"{", "close":"}"},
+		{"open":"\"", "close":"\"", "notIn":["string"]}
+	]
+}

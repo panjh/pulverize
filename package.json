@@ -1,0 +1,129 @@
+{
+    "name": "pulverize",
+    "displayName": "Pulverize Verilog Support",
+    "description": "Verilog Language Support for FPGA or IC Develop",
+    "version": "0.1.1",
+    "publisher": "edison",
+    "icon": "icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/panjh/pulverize"
+	},
+    "keywords": [
+        "FPGA",
+        "ASIC",
+        "IC",
+        "HDL",
+        "Systemverilog",
+        "Verilog",
+        "Vivado",
+        "Xilinx",
+        "Pulverize"
+    ],
+    "engines": {
+        "vscode": "^1.79.0"
+    },
+    "categories": [
+        "Extension Packs",
+        "Programming Languages"
+    ],
+    "activationEvents": [
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "pulverize.parse",
+                "title": "Parse current file and rebuild index",
+                "category": "pulverize"
+            },
+            {
+                "command": "pulverize.parse_all",
+                "title": "Parse all files and rebuild index",
+                "category": "pulverize"
+            },
+            {
+                "command": "pulverize.check",
+                "title": "Check current file for syntax error",
+                "category": "pulverize"
+            }
+        ],
+        "languages": [
+            {
+                "id": "verilog",
+                "aliases": [
+                    "Verilog",
+                    "verilog"
+                ],
+                "extensions": [
+                    ".v",
+                    ".V",
+                    ".vh",
+                    ".vl"
+                ],
+                "configuration": "./config/vlog.configuration.json"
+            },
+            {
+                "id": "systemverilog",
+                "aliases": [
+                    "System Verilog",
+                    "systemverilog"
+                ],
+                "extensions": [
+                    ".sv",
+                    ".SV"
+                ],
+                "configuration": "./config/svlog.configuration.json"
+            },
+            {
+                "id": "punk",
+                "aliases": [
+                    "punk",
+                    "Punk"
+                ],
+                "extensions": [
+                    ".punk"
+                ],
+                "configuration": "./config/punk.configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "verilog",
+                "scopeName": "source.verilog",
+                "path": "./syntaxes/vlog.json"
+            },
+            {
+                "language": "systemverilog",
+                "scopeName": "source.systemverilog",
+                "path": "./syntaxes/svlog.json"
+            },
+            {
+                "language": "punk",
+                "scopeName": "source.punk",
+                "path": "./syntaxes/punk.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/glob": "^8.0.0",
+        "@types/mocha": "^10.0.0",
+        "@types/node": "^16.18.39",
+        "@types/vscode": "^1.79.0",
+        "@typescript-eslint/eslint-plugin": "^5.42.0",
+        "@typescript-eslint/parser": "^5.42.0",
+        "@vscode/test-electron": "^2.2.0",
+        "eslint": "^8.26.0",
+        "glob": "^8.0.3",
+        "mocha": "^10.1.0",
+        "typescript": "^4.8.4"
+    }
+}
