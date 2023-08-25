@@ -1,4 +1,4 @@
-# Pulverize Verilog Support - version 0.1.0
+# Pulverize Verilog Support
 This is a Verilog extension for VS Code
 
 ## Features

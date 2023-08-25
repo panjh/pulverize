@@ -116,8 +116,8 @@ export class PulParser implements SourceLoader {
     private do_check(ctx: Context, source: Source): boolean {
         let no_error = true;
         for (let id of ctx.references) {
-            let symbol = ctx.find_symbol(id.name, id.doc_start);
-            let rng = id.doc_range;
+            let symbol = ctx.find_symbol(id.name, id.root_beg);
+            let rng = id.root_rng;
             if (!symbol) {
                 let code = id.name;
                 if (id.port_name && id.port_modu) {
@@ -131,7 +131,7 @@ export class PulParser implements SourceLoader {
                 source.diags_linter.push(diag);
                 no_error = false;
             }
-            else if (!symbol.pos_contains(id.doc_start)) {
+            else if (!symbol.scope_contains(id.root_beg)) {
                 let diag = new vscode.Diagnostic(rng, `reference '${id.name}' ahead of declaration`, vscode.DiagnosticSeverity.Warning);
                 diag.source = "pul-linter";
                 source.diags_linter.push(diag);

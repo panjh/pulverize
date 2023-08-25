@@ -172,3 +172,7 @@ export function zero_fill(num: number, width: number): string {
     while (s.length < width) s = '0' + s;
     return s;
 }
+
+export function token_range(first: antlr4.Token, last: antlr4.Token): vscode.Range {
+    return new vscode.Range(first.line-1, first.column, last.line-1, last.column+last.text.length-1);
+}

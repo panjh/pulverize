@@ -41,7 +41,7 @@ export class CodeActionProvider implements vscode.CodeActionProvider {
         action.edit = new vscode.WorkspaceEdit();
         let insert_pos = new vscode.Position(pos.line, 0);
         while (ctx instanceof Instance || ctx instanceof InstanceGroup || ctx instanceof Func || ctx instanceof Task || ctx instanceof Always || ctx instanceof Initial) {
-            insert_pos = new vscode.Position(ctx.range.start.line, 0);
+            insert_pos = new vscode.Position(ctx.root_rng.start.line, 0);
             ctx = ctx.parent!;
         }
         action.edit.insert(doc.uri, insert_pos, `wire${util.pad(width, 8)}${name};\n`);

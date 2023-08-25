@@ -15,8 +15,8 @@ export class ContextEntity {
         return this.entity.name;
     }
 
-    get range(): vscode.Range {
-        return this.entity.range;
+    get rng(): vscode.Range {
+        return this.entity.rng;
     }
 
     to_string(): string {
@@ -27,8 +27,8 @@ export class ContextEntity {
         return this.entity.get_path();
     }
 
-    pos_contains(pos: number): boolean {
-        return this.entity.pos_contains(pos);
+    scope_contains(pos: number): boolean {
+        return this.entity.scope_contains(pos);
     }
 
 }

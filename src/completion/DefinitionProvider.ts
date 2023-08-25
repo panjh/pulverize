@@ -31,7 +31,7 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
             let symbol = ctx.find_symbol(sym.word, pos);
             if (debug) console.log(`${dtag} symbol='${symbol?.name}'`);
             if (!symbol) return null;
-            return new vscode.Location(vscode.Uri.file(symbol.get_path()), symbol.range);
+            return new vscode.Location(vscode.Uri.file(symbol.get_path()), symbol.rng);
         }
         case util.SymbolKind.FILE: {
             let file = root.source.relative(sym.word);
@@ -44,7 +44,7 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
             let modu = PulParser.inst().get_module(def_modu.name);
             let port = modu?.get_port(sym.word);
             if (!port) return null;
-            return new vscode.Location(vscode.Uri.file(port.get_path()), port.range);
+            return new vscode.Location(vscode.Uri.file(port.get_path()), port.rng);
         }
         }
     }

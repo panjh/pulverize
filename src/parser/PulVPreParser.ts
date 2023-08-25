@@ -24,20 +24,18 @@ let dtag = "[PulVPreParser]";
 
 class LexWrapper {
     source?: Source;
-    line?: number;
-    column?: number;
-    pos_override?: number;
+    token_override?: any;
+    root_override?: any;
     lexer: VLexer;
     pos: number;
     err: PulErrorListener;
 
-    constructor(diags: vscode.Diagnostic[], source: Source|string, line?: number, column?: number) {
+    constructor(diags: vscode.Diagnostic[], source: Source|string, root_override?: any) {
         if (source instanceof Source) {
             this.source = source;
             source = source.code;
         }
-        this.line = line;
-        this.column = column;
+        this.root_override = root_override;
         let ins = new antlr4.CharStream(source);
         this.lexer = new VLexer(ins);
         this.err = new PulErrorListener("pul-lexer", diags, this.lexer);
@@ -47,10 +45,15 @@ class LexWrapper {
     next(kind?: number): antlr4.Token|null {
         while (true) {
             let tok = this.lexer.nextToken();
+            let override = this.token_override;
+            if (override) {
+                tok.text = tok.text;
+                if (override.start) tok.start += override.start, tok.stop += override.start;
+                if (override.column && tok.line == 1) tok.column += override.column;
+                if (override.line) tok.line += override.line - 1;
+            }
             this.pos = tok.start;
             if (tok.channel == CHN_SPCACE || tok.channel == CHN_COMMENTS) continue;
-            if (this.line !== undefined) tok.line = this.line;
-            if (this.column !== undefined) tok.column = this.column;
             if (debug_next) console.log(`${dtag} READ      . @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}      (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
             if (kind === undefined || tok.type == kind) return tok;
             console.error(`${dtag} ${tok.text} at ${tok.line}:${tok.column} is not type ${VLexer.literalNames[kind]}`);
@@ -91,12 +94,12 @@ export class PulVPreParser {
         while (true) {
             let tok = lex.next()!;
             if (tok.type == VLexer.EOF) {
-                if (lex == this.lex_main) this.add(tok, lex.pos_override);
+                if (lex == this.lex_main) this.add(tok, lex.root_override);
                 break;
             }
 
             if (tok.channel == CHN_NORMAL) {
-                if (this.check_if()) this.add(tok, lex.pos_override);
+                if (this.check_if()) this.add(tok, lex.root_override);
                 continue;
             }
 
@@ -137,15 +140,13 @@ export class PulVPreParser {
         return (this.if_state.length == 0 || this.if_state[this.if_state.length-1] == IF_TRUE);
     }
 
-    private add(tok: antlr4.Token, pos?: number, len?: number, rng?: vscode.Range): void {
-        if (pos === undefined) pos = tok.start;
-        if (len === undefined) len = tok.text.length;
-        (tok as any).doc_start = pos;
-        (tok as any).doc_stop = pos + len;
-        (tok as any).doc_range = rng;
+    private add(tok: antlr4.Token, root_override?: any): void {
+        if (root_override?.beg !== undefined) (tok as any).root_beg = root_override.beg;
+        if (root_override?.end !== undefined) (tok as any).root_end = root_override.end;
+        if (root_override?.rng !== undefined) (tok as any).root_rng = root_override.rng;
         tok.tokenIndex = this.tokens.length;
         this.tokens.push(tok);
-        if (debug_add) console.log(`${dtag} WRITE ${util.pad(tok.tokenIndex, 4)}. @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}|${util.pad((tok as any).pos_start, 4)} (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
+        if (debug_add) console.log(`${dtag} WRITE ${util.pad(tok.tokenIndex, 4)}. @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}|${util.pad((tok as any).root_beg||-1, 4)} (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
     }
 
     /*
@@ -166,8 +167,11 @@ export class PulVPreParser {
         let inc = new Include(inc_source);
         inc.tok_start = this.tokens.length;
 
-        let ilex = new LexWrapper(lex.err.diags, inc_source);
-        ilex.pos_override = token.start;
+        let ilex = new LexWrapper(lex.err.diags, inc_source, lex.root_override || {
+            "beg": token.start,
+            "end": token.stop,
+            "rng": util.token_range(token, tok),
+        });
         this.parse(ilex);
         inc.tok_end = this.tokens.length;
         this.source.includes.push(inc);
@@ -183,6 +187,7 @@ export class PulVPreParser {
         let name = tok.text;
         tok = lex.next()!;
         if (tok.type == VLexer.MACRO_WHITE_SPACE) tok = lex.next()!;
+        let start_token = tok;
         let pos_beg = tok.start;
         let rng_beg = new vscode.Position(tok.line-1, token.column);
         while (tok.type != VLexer.MACRO_NEWLINE && tok.type != VLexer.EOF) {
@@ -193,8 +198,8 @@ export class PulVPreParser {
         let rng = new vscode.Range(rng_beg, rng_end);
         let code = lex.source!.get_document(pos_beg, pos_end);
 
-        let ilex = new LexWrapper(lex.err.diags, code, tok.line, tok.column);
-        ilex.pos_override = token.start;
+        let ilex = new LexWrapper(lex.err.diags, code, lex.root_override);
+        ilex.token_override = start_token;
         let mtoks = this.tokens;
         let mdebug_add = debug_add;
         debug_add = false;
@@ -233,8 +238,12 @@ export class PulVPreParser {
             return true;
         }
         for (let tok of macro.tokens) {
-            let rng = new vscode.Range(token.line-1, token.column, token.line-1, token.column + token.text.length);
-            this.add(tok.clone(), lex.pos_override || token.start, token.text.length, rng);
+            let root_override = lex.root_override || {
+                "beg": token.start,
+                "end": token.stop,
+                "rng": util.token_range(token, token),
+            };
+            this.add(tok.clone(), root_override);
         }
         return true;
     }

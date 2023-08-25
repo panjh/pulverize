@@ -21,7 +21,7 @@ export class Context extends Entity {
 
     locate(pos: vscode.Position): Context {
         for (let child of this.childs) {
-            if (child.range.contains(pos)) return child.locate(pos);
+            if (child.rng.contains(pos)) return child.locate(pos);
         }
         return this;
     }
@@ -30,7 +30,7 @@ export class Context extends Entity {
         let s = this.symbols[symbol.name];
         if (!s) this.symbols[symbol.name] = [symbol];
         else {
-            if (s[s.length-1].doc_end < 0) s[s.length-1].doc_end = symbol.doc_start;
+            if (s[s.length-1].scope_end < 0) s[s.length-1].scope_end = symbol.scope_beg;
             s.push(symbol);
         }
     }
@@ -39,7 +39,7 @@ export class Context extends Entity {
         let s = this.symbols[name];
         if (s) {
             for (let sym of s) {
-                if (sym.pos_contains(pos)) return sym;
+                if (sym.scope_contains(pos)) return sym;
             }
         }
         if (!this.parent) return null;
@@ -48,9 +48,9 @@ export class Context extends Entity {
 
     get_symbols(pos: number, syms?: Entity[]): Entity[] {
         if (syms === undefined) syms = [];
-        for (let [name, symbols] of Object.entries(this.symbols)) {
+        for (let symbols of Object.values(this.symbols)) {
             for (let symbol of symbols) {
-                if (symbol.pos_contains(pos)) {
+                if (symbol.scope_contains(pos)) {
                     syms.push(symbol);
                     break;
                 }

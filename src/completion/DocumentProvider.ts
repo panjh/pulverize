@@ -14,8 +14,8 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
         let symbols = root.get_document_symbols();
         let items: vscode.SymbolInformation[] = [];
         for (let symbol of symbols) {
-            if (debug) console.log(`${dtag} symbol name '${symbol.name}' ctx '${symbol.ctx.name}' path '${symbol.get_path()}' start ${symbol.range.start.line}:${symbol.range.start.character} `);
-            let item = new vscode.SymbolInformation(symbol.name, vscode.SymbolKind.Variable, symbol.get_path(), new vscode.Location(vscode.Uri.file(symbol.get_path()), symbol.range));
+            if (debug) console.log(`${dtag} symbol name '${symbol.name}' ctx '${symbol.ctx.name}' path '${symbol.get_path()}' start ${symbol.rng.start.line}:${symbol.rng.start.character} `);
+            let item = new vscode.SymbolInformation(symbol.name, vscode.SymbolKind.Variable, symbol.get_path(), new vscode.Location(vscode.Uri.file(symbol.get_path()), symbol.rng));
             items.push(item);
         }
         return items;
