@@ -2,7 +2,7 @@
     "name": "pulverize",
     "displayName": "Pulverize Verilog Support",
     "description": "Verilog Language Support for FPGA or IC Develop",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "edison",
     "icon": "icon.png",
 	"repository": {
@@ -27,8 +27,7 @@
         "Extension Packs",
         "Programming Languages"
     ],
-    "activationEvents": [
-    ],
+    "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
@@ -61,7 +60,7 @@
                     ".vh",
                     ".vl"
                 ],
-                "configuration": "./config/vlog.configuration.json"
+                "configuration": "./config/v.configuration.json"
             },
             {
                 "id": "systemverilog",
@@ -73,7 +72,7 @@
                     ".sv",
                     ".SV"
                 ],
-                "configuration": "./config/svlog.configuration.json"
+                "configuration": "./config/sv.configuration.json"
             },
             {
                 "id": "punk",
@@ -91,17 +90,24 @@
             {
                 "language": "verilog",
                 "scopeName": "source.verilog",
-                "path": "./syntaxes/vlog.json"
+                "path": "./syntaxes/v.tmLanguage.json"
             },
             {
                 "language": "systemverilog",
                 "scopeName": "source.systemverilog",
-                "path": "./syntaxes/svlog.json"
+                "path": "./syntaxes/sv.tmLanguage.json"
             },
             {
                 "language": "punk",
                 "scopeName": "source.punk",
-                "path": "./syntaxes/punk.json"
+                "path": "./syntaxes/punk.tmLanguage.json"
+            }
+        ],
+        "themes": [
+            {
+                "label": "Pulverize Dark Modern",
+                "uiTheme": "vs-dark",
+                "path": "./themes/pulverize-color-theme.json"
             }
         ]
     },

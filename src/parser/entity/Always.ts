@@ -5,6 +5,6 @@ import { Source } from "./Source.d";
 export class Always extends Context {
 
     constructor(ctx: antlr4.ParserRuleContext, source: Source, parent: Context) {
-        super("always", ctx, source, parent);
+        super(`line-${ctx.start.line}`, "always", ctx, source, parent);
     }
 }

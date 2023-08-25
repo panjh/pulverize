@@ -7,9 +7,10 @@ This is a Verilog extension for VS Code
 * Go symbol defination on mouse click
 * Go document symbols in editor from command @
 * Code completion after lead charactor
-    * '`' leads to macros
-    * '.' in module instance context leads to ports
-    * '$' leads to symbols
+    * '**`**' leads to macros
+    * '**.**' in module instance context leads to ports
+    * '**$**' leads to symbols
 * Quick fix for missing symbol
+* Color theme for verilog and system-verilog
 
 **Enjoy!**

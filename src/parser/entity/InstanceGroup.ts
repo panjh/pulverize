@@ -5,7 +5,7 @@ import { Source } from "./Source.d";
 export class InstanceGroup extends Context {
 
     constructor(name: string, ctx: antlr4.ParserRuleContext, source: Source, parent: Context) {
-        super(name, ctx, source, parent);
+        super(name, "decl", ctx, source, parent);
     }
 
 }

@@ -9,7 +9,13 @@ export class Id extends Entity {
     port_modu?: string;
     port_name?: string;
 
-    constructor(name: string, ctx: antlr4.ParserRuleContext, source: Source) {
+    constructor(name: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
         super(name, ctx, source);
+        this.parent = parent;
     }
+
+    to_string(): string {
+        return `(ref) ${this.name}`;
+    }
+
 };

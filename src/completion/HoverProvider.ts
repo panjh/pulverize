@@ -25,18 +25,20 @@ export class HoverProvider implements vscode.HoverProvider {
             let macro = source.find_macro_by_pos(sym.word, pos);
             if (debug) console.log(`${dtag} macro='${macro?.name}'`);
             if (!macro) return null;
-            return new vscode.Hover({ language: "verilog", value: macro.to_string() });
+            return new vscode.Hover(macro.to_md_string());
         }
         case util.SymbolKind.VARIABLE: {
             let symbol = ctx.find_symbol(sym.word, pos);
             if (debug) console.log(`${dtag} symbol='${symbol?.name}'`);
             if (!symbol) return null;
-            return new vscode.Hover({ language: "verilog", value: symbol.to_string() });
+            return new vscode.Hover(symbol.to_md_string());
         }
         case util.SymbolKind.FILE: {
             let file = root.source.relative(sym.word);
             if (debug) console.log(`${dtag} file='${file}'`);
-            return new vscode.Hover({ language: "verilog", value: `/* ${file} */`});
+            let md = new vscode.MarkdownString();
+            md.appendMarkdown(`*(include @{file})*`);
+            return new vscode.Hover(md);
         }
         case util.SymbolKind.FIELD: {
             if (!(ctx instanceof Instance)) return null;
@@ -44,7 +46,7 @@ export class HoverProvider implements vscode.HoverProvider {
             let modu = PulParser.inst().get_module(def_modu.name);
             let port = modu?.get_port(sym.word);
             if (!port) return null;
-            return new vscode.Hover({ language: "verilog", value: port.to_string() });
+            return new vscode.Hover(port.to_md_string());
         }
         }
     }

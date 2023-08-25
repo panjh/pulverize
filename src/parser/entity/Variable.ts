@@ -1,13 +1,11 @@
 import * as antlr4 from "../../antlr4";
-import { Entity } from "./Entity";
+import { Symbol } from "./Symbol";
 import { Source } from "./Source.d";
+import { Context } from "./Context";
 
-export class Variable extends Entity {
+export class Variable extends Symbol {
 
-    kind: string;
-
-    constructor(name: string, kind: string, ctx: antlr4.ParserRuleContext, source: Source) {
-        super(name, ctx, source);
-        this.kind = kind;
+    constructor(name: string, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
+        super(name, kind, "", ctx, source, parent);
     }
 };

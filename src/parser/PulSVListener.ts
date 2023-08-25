@@ -54,7 +54,7 @@ export class PulSVListener extends SVParserListener {
         let modu = this.curr! as Module;
         for (let port of ports) {
             let name = port.getText();
-            let _port = new Port(name, dir, width, ctx, this.source.get_source(ctx.start.tokenIndex));
+            let _port = new Port(name, "", width, dir, ctx, this.source.get_source(ctx.start.tokenIndex));
             this.curr!.add_symbol(_port);
             modu.ports.push(_port);
         }

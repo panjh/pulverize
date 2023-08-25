@@ -10,7 +10,7 @@ export class Root extends Context {
     instances: {[key: string]: Instance};
 
     constructor(ctx: antlr4.ParserRuleContext, source: Source) {
-        super(source.get_path(), ctx, source);
+        super(source.get_path(), "root", ctx, source);
         this.modules = {};
         this.instances = {};
     }

@@ -53,11 +53,15 @@ export class Source {
     get_document(beg: number, end: number, range?: vscode.Range): string {
         let doc = this.code.substring(beg, end);
         if (range) {
-            let cmt = `/* file: ${this.path}:${range.start.line+1}:${range.start.character+1} */`;
+            let cmt = `/* file: ${this.get_location(range)} */`;
             doc = `${cmt}\n${doc}`;
         }
         // console.log(`code ${beg}~${end} => ${doc}`);
         return doc;
+    }
+
+    get_location(range: vscode.Range): string {
+        return `${this.path}:${range.start.line+1}:${range.start.character+1}`;
     }
 
     get_path(): string {
@@ -69,14 +73,14 @@ export class Source {
     }
 
     define_macro(macro: Macro, idx: number, pos: number): void {
-        macro.idx_start = idx;
+        macro.idx_beg = idx;
         macro.idx_end = -1;
-        macro.pos_start = pos;
-        macro.pos_end = -1;
+        macro.scope_beg = pos;
+        macro.scope_end = -1;
         let m = this.macros[macro.name];
         if (!m) this.macros[macro.name] = [macro];
         else {
-            if (m[m.length-1].pos_end < 0) m[m.length-1].pos_end = pos;
+            if (m[m.length-1].scope_end < 0) m[m.length-1].scope_end = pos;
             m.push(macro);
         }
     }
@@ -85,7 +89,7 @@ export class Source {
         let m = this.macros[name];
         if (!m) return;
         m[m.length-1].idx_end = idx;
-        m[m.length-1].pos_end = pos;
+        m[m.length-1].scope_end = pos;
     }
 
     find_macro_by_idx(name: string, idx: number): Macro|null {
@@ -101,7 +105,7 @@ export class Source {
         let m = this.macros[name];
         if (!m) return null;
         for (let macro of m) {
-            if (macro.pos_contains(pos)) return macro;
+            if (macro.scope_contains(pos)) return macro;
         }
         return null;
     }
@@ -110,7 +114,7 @@ export class Source {
         let macs: Macro[] = [];
         for (let [name, macros] of Object.entries(this.macros)) {
             for (let macro of macros) {
-                if (macro.pos_contains(pos)) {
+                if (macro.scope_contains(pos)) {
                     macs.push(macro);
                     break;
                 }

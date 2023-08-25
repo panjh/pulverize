@@ -359,8 +359,8 @@ range_
 function_declaration
 	: 'function' 'automatic'? function_range_or_type function_identifier ';' task_item_declaration task_item_declaration* function_statement 'endfunction'
 	| 'function' 'automatic'? function_range_or_type function_identifier '(' task_port_list ')' ';' block_item_declaration* function_statement 'endfunction'
-	| 'import' STRING_LITERAL 'context'? 'function' function_range_or_type function_identifier '(' task_port_list? ')' ';'
-	| 'export' STRING_LITERAL 'context'? 'function' function_range_or_type function_identifier '(' task_port_list? ')' ';'
+	| 'import' STRING_LITERAL 'context'? 'function' function_range_or_type function_identifier ( '(' task_port_list? ')' )? ';'
+	| 'export' STRING_LITERAL 'context'? 'function' function_range_or_type function_identifier ( '(' task_port_list? ')' )? ';'
 	;
 
 function_range_or_type
@@ -379,8 +379,8 @@ function_range_or_type
 task_declaration
 	: 'task' 'automatic'? task_identifier ';' task_item_declaration* statement_or_null 'endtask'
 	| 'task' 'automatic'? task_identifier '(' task_port_list? ')' ';' block_item_declaration* statement_or_null 'endtask'
-	| 'import' STRING_LITERAL 'context'? 'task' task_identifier '(' task_port_list? ')' ';'
-	| 'export' STRING_LITERAL 'context'? 'task' task_identifier '(' task_port_list? ')' ';'
+	| 'import' STRING_LITERAL 'context'? 'task' task_identifier ( '(' task_port_list? ')' )? ';'
+	| 'export' STRING_LITERAL 'context'? 'task' task_identifier ( '(' task_port_list? ')' )? ';'
 	;
 
 task_item_declaration

@@ -29,8 +29,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         let items: vscode.CompletionItem[] = [];
         for (let macro of macros) {
             let item = new vscode.CompletionItem(macro.name, vscode.CompletionItemKind.Variable);
-            item.documentation = new vscode.MarkdownString();
-            item.documentation.appendCodeblock(macro.to_string(), "verilog");
+            item.documentation = macro.to_md_string();
             items.push(item);
         }
         return items;

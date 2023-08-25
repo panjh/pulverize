@@ -1,14 +1,11 @@
 import * as antlr4 from "../../antlr4";
-import { Entity } from "./Entity";
+import { Symbol } from "./Symbol";
 import { Source } from "./Source.d";
+import { Context } from "./Context";
 
-export class Logic extends Entity {
-    kind: string;
-    width: string;
+export class Logic extends Symbol {
 
-    constructor(name: string, kind: string, width: string, ctx: antlr4.ParserRuleContext, source: Source) {
-        super(name, ctx, source);
-        this.kind = kind;
-        this.width = width;
+    constructor(name: string, kind: string, width: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
+        super(name, kind, width, ctx, source, parent);
     }
 };

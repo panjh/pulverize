@@ -38,7 +38,18 @@ export class Entity {
     }
 
     to_string(): string {
-        return this.source.get_document(this.beg, this.end, this.rng);
+        return this.name;
+    }
+
+    to_md_string(): vscode.MarkdownString {
+        let md = new vscode.MarkdownString();
+        md.appendMarkdown(this.get_md_desc("entity"));
+        md.appendCodeblock(this.to_string(), "verilog");
+        return md;
+    }
+
+    get_md_desc(type: string): string {
+        return `(**${type}** at ${this.source.get_location(this.rng)})`;
     }
 
     get_path(): string {

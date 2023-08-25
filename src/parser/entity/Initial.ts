@@ -5,6 +5,6 @@ import { Source } from "./Source.d";
 export class Initial extends Context {
 
     constructor(ctx: antlr4.ParserRuleContext, source: Source, parent: Context) {
-        super("initial", ctx, source, parent);
+        super(`line-${ctx.start.line}`, "initial", ctx, source, parent);
     }
 }

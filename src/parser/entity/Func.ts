@@ -6,7 +6,7 @@ import { Source } from "./Source.d";
 export class Func extends Procedure {
 
     constructor(name: string, ctx: antlr4.ParserRuleContext, source: Source, parent: Context) {
-        super(name, ctx, source, parent);
+        super(name, "function", ctx, source, parent);
     }
 
 }

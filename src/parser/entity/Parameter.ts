@@ -1,12 +1,12 @@
 import * as antlr4 from "../../antlr4";
-import { Entity } from "./Entity";
+import { Symbol } from "./Symbol";
 import { Source } from "./Source.d";
+import { Context } from "./Context";
 
-export class Parameter extends Entity {
-    value: string;
+export class Parameter extends Symbol {
 
-    constructor(name: string, value: string, ctx: antlr4.ParserRuleContext, source: Source) {
-        super(name, ctx, source);
+    constructor(name: string, value: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
+        super(name, "param", "", ctx, source, parent);
         this.value = value;
     }
 };

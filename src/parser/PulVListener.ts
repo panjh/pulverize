@@ -55,8 +55,14 @@ export class PulVListener extends VParserListener {
     }
 
     private add_port(ctx: PortContext, dir: string): void {
-        let width = (ctx.range_() ? ctx.range_().getText() : "");
-        let ports = util.find_all<v.Port_identifierContext>(v.Port_identifierContext, ctx);
+        let kind: string = "wire";
+        let cobj = ctx as any;
+        if (cobj.net_type && cobj.net_type()) kind = cobj.net_type().getText();
+        else if (cobj.reg_type && cobj.reg_type()) kind = cobj.reg_type().getText();
+        else if (cobj.output_variable_type && cobj.output_variable_type()) kind = cobj.output_variable_type().getText();
+        else if (cobj.task_port_type && cobj.task_port_type()) kind = cobj.task_port_type().getText();
+        let width = (ctx.range_()?.getText() || "");
+        let ports = util.find_all(v.Port_identifierContext, ctx);
         if (!(this.curr instanceof Procedure)) {
             console.error(`${dtag} current context '${this.curr?.name}' is not a procedure`);
             return;
@@ -64,7 +70,7 @@ export class PulVListener extends VParserListener {
         let proc = this.curr as Procedure;
         for (let port of ports) {
             let name = port.getText();
-            let _port = new Port(name, dir, width, ctx, this.source.get_source(ctx.start.tokenIndex));
+            let _port = new Port(name, kind, width, dir, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(_port);
             proc.ports.push(_port);
         }
@@ -73,33 +79,43 @@ export class PulVListener extends VParserListener {
     private add_param(ctx: ParamContext): void {
         let params = util.find_all<v.Param_assignmentContext>(v.Param_assignmentContext, ctx);
         for (let param of params) {
-            if (!param.parameter_identifier() || !param.constant_mintypmax_expression()) continue;
             let name = param.parameter_identifier().getText();
             let value = param.constant_mintypmax_expression().getText();
-            let parameter = new Parameter(name, value, ctx, this.source.get_source(ctx.start.tokenIndex));
+            let parameter = new Parameter(name, value, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(parameter);
         }
     }
 
     private add_net(ctx: v.Net_declarationContext): void {
-        let type = ctx.net_type().getText();
-        let width = (ctx.range_() ? ctx.range_().getText() : "");
-        let nets = util.find_all(v.Net_identifierContext, ctx) as v.Net_identifierContext[];
-        for (let net of nets) {
-            let name = net.getText();
-            let logic = new Logic(name, type, width, ctx, this.source.get_source(ctx.start.tokenIndex));
-            this.curr!.add_symbol(logic);
-            if (debug) console.log(`${dtag}   add_net(${name}) to ctx '${this.curr!.name}'`);
+        let kind = (ctx.net_type()?.getText() || "trireg");
+        let width = (ctx.range_()?.getText() || "");
+        if (ctx.list_of_net_decl_assignments()) {
+            for (let net of ctx.list_of_net_decl_assignments().net_decl_assignment_list()) {
+                let name = net.net_identifier().getText();
+                let value = net.expression().getText();
+                let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+                logic.value = value;
+                this.curr!.add_symbol(logic);
+                if (debug) console.log(`${dtag}   add_net(${name}=${value}) to ctx '${this.curr!.name}'`);
+            }
+        }
+        if (ctx.list_of_net_identifiers()) {
+            for (let net of ctx.list_of_net_identifiers().net_identifier_list()) {
+                let name = net.getText();
+                let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+                this.curr!.add_symbol(logic);
+                if (debug) console.log(`${dtag}   add_net(${name}) to ctx '${this.curr!.name}'`);
+            }
         }
     }
 
     private add_reg(ctx: v.Reg_declarationContext): void {
-        let type = ctx.reg_type().getText();
-        let width = (ctx.range_() ? ctx.range_().getText() : "");
-        let regs = util.find_all<v.Variable_identifierContext>(v.Variable_identifierContext, ctx);
+        let kind = ctx.reg_type().getText();
+        let width = (ctx.range_()?.getText() || "");
+        let regs = util.find_all(v.Variable_identifierContext, ctx);
         for (let reg of regs) {
             let name = reg.getText();
-            let logic = new Logic(name, type, width, ctx, this.source.get_source(ctx.start.tokenIndex));
+            let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(logic);
             if (debug) console.log(`${dtag}   add_reg(${name}) to ctx '${this.curr!.name}'`);
         }
@@ -109,7 +125,7 @@ export class PulVListener extends VParserListener {
         let vars = util.find_all(type, ctx);
         for (let v of vars) {
             let name = v.getText();
-            let variable = new Variable(name, kind, ctx, this.source.get_source(ctx.start.tokenIndex));
+            let variable = new Variable(name, kind, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(variable);
             if (debug) console.log(`${dtag}   add_variable(${name}) to ctx '${this.curr!.name}'`);
         }
@@ -118,8 +134,7 @@ export class PulVListener extends VParserListener {
     private add_ref(ctx: v.IdentifierContext|undefined): void {
         if (!ctx) return;
         let name = ctx.getText();
-        let id = new Id(name, ctx, this.source.get_source(ctx.start.tokenIndex));
-        id.parent = this.curr!;
+        let id = new Id(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         id.port_modu = this.curr_port_modu;
         id.port_name = this.curr_port_name;
         this.curr!.references.push(id);
