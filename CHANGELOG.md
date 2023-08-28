@@ -10,3 +10,6 @@
 
 ### 0.1.2
 * Pulverize color schema added for verilog or system-verilog
+
+### 0.1.3
+* Add hover hint and click-to-declaration to module name

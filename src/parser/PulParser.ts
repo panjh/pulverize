@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import * as antlr4 from "../antlr4/index";
+import * as antlr4 from "../antlr4";
 import * as util from "../util";
 import { Source } from "./entity/Source";
 import { Root } from "./entity/Root";
@@ -15,6 +15,7 @@ import VLexer from "../v/VLexer";
 import VParser from "../v/VParser";
 import { PulVPreParser } from "./PulVPreParser";
 import { PulVListener } from "./PulVListener";
+import { ModuleProvider } from "./ModuleProvider";
 
 // systemverilog is not full supported, partial supported by verilog with some pactch
 // import SVLexer from "../sv/SVLexer";
@@ -25,7 +26,7 @@ import { PulVListener } from "./PulVListener";
 let debug = false;
 let dtag = "[PulParser]";
 
-export class PulParser implements SourceLoader {
+export class PulParser implements SourceLoader, ModuleProvider {
 
     private static INST: PulParser;
 
@@ -149,7 +150,7 @@ export class PulParser implements SourceLoader {
         let parser = new VParser(toks as antlr4.TokenStream);
         new PulErrorListener("pul-parser", source.diags_parser = [], parser);
         let ast = parser.parse();
-        let listener = new PulVListener(source);
+        let listener = new PulVListener(source, this);
         antlr4.ParseTreeWalker.DEFAULT.walk(listener, ast);
         return listener.get_root();
     }

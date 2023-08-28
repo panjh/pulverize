@@ -19,6 +19,7 @@ import { Always } from "./entity/Always";
 import { Initial } from "./entity/Initial";
 import { Procedure } from "./entity/Procedure";
 import { Source } from "./entity/Source";
+import { ModuleProvider } from "./ModuleProvider";
 
 type PortContext = v.Input_declarationContext|v.Inout_declarationContext|v.Output_declarationContext|v.Tf_input_declarationContext|v.Tf_inout_declarationContext|v.Tf_output_declarationContext;
 type ParamContext = v.Parameter_declarationContext|v.Local_parameter_declarationContext;
@@ -29,14 +30,16 @@ let dtag = "[PulVListener]";
 export class PulVListener extends VParserListener {
 
     private source: Source;
+    private modu_provider: ModuleProvider;
     private root?: Root;
     private curr?: Context;
     private curr_port_name?: string;
     private curr_port_modu?: string;
 
-    constructor(source: Source) {
+    constructor(source: Source, modu_provider: ModuleProvider) {
         super();
         this.source = source;
+        this.modu_provider = modu_provider;
     }
 
     get_root(): Root|undefined {
@@ -147,7 +150,7 @@ export class PulVListener extends VParserListener {
 
     enterSource_text(ctx: v.Source_textContext): void {
         if (ctx.exception) return;
-        this.root = new Root(ctx, this.source.get_source(ctx.start.tokenIndex));
+        this.root = new Root(ctx, this.source.get_source(ctx.start.tokenIndex), this.modu_provider);
         this.curr = this.root;
         if (debug) console.log(`${dtag} enterSource_text()`);
     }

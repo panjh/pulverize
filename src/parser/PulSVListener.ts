@@ -17,6 +17,7 @@ import { Variable } from "./entity/Variable";
 import { Always } from "./entity/Always";
 import { Initial } from "./entity/Initial";
 import { Source } from "./entity/Source";
+import { ModuleProvider } from "./ModuleProvider";
 
 let debug = false;
 let dtag = "[PulSVListener]";
@@ -24,14 +25,16 @@ let dtag = "[PulSVListener]";
 export class PulSVListener extends SVParserListener {
 
     private source: Source;
+    private module_provider: ModuleProvider;
     private root?: Root;
     private curr?: Context;
     private curr_port_name?: string;
     private curr_port_modu?: string;
 
-    constructor(source: Source) {
+    constructor(source: Source, module_provider: ModuleProvider) {
         super();
         this.source = source;
+        this.module_provider = module_provider;
     }
 
     get_root(): Root|undefined {
@@ -117,7 +120,7 @@ export class PulSVListener extends SVParserListener {
      * source file
      */
     enterSource_text(ctx: sv.Source_textContext): void {
-        this.root = new Root(ctx, this.source.get_source(ctx.start.tokenIndex));
+        this.root = new Root(ctx, this.source.get_source(ctx.start.tokenIndex), this.module_provider);
         this.curr = this.root;
         if (debug) console.log(`${dtag} enterSource_text()`);
     }

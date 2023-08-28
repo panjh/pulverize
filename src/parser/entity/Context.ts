@@ -37,14 +37,14 @@ export class Context extends Entity {
         }
     }
 
-    find_symbol(name: string, pos: number): Entity|null {
+    find_symbol(name: string, pos: number): Entity|undefined {
         let s = this.symbols[name];
         if (s) {
             for (let sym of s) {
                 if (sym.scope_contains(pos)) return sym;
             }
         }
-        if (!this.parent) return null;
+        if (!this.parent) return undefined;
         return this.parent.find_symbol(name, pos);
     }
 
