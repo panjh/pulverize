@@ -72,7 +72,7 @@ export class PulVListener extends VParserListener {
         }
         let proc = this.curr as Procedure;
         for (let port of ports) {
-            let name = port.getText();
+            let name = port;
             let _port = new Port(name, kind, width, dir, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(_port);
             proc.ports.push(_port);
@@ -82,7 +82,7 @@ export class PulVListener extends VParserListener {
     private add_param(ctx: ParamContext): void {
         let params = util.find_all<v.Param_assignmentContext>(v.Param_assignmentContext, ctx);
         for (let param of params) {
-            let name = param.parameter_identifier().getText();
+            let name = param.parameter_identifier();
             let value = param.constant_mintypmax_expression().getText();
             let parameter = new Parameter(name, value, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(parameter);
@@ -94,7 +94,7 @@ export class PulVListener extends VParserListener {
         let width = (ctx.range_()?.getText() || "");
         if (ctx.list_of_net_decl_assignments()) {
             for (let net of ctx.list_of_net_decl_assignments().net_decl_assignment_list()) {
-                let name = net.net_identifier().getText();
+                let name = net.net_identifier();
                 let value = net.expression().getText();
                 let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
                 logic.value = value;
@@ -104,7 +104,7 @@ export class PulVListener extends VParserListener {
         }
         if (ctx.list_of_net_identifiers()) {
             for (let net of ctx.list_of_net_identifiers().net_identifier_list()) {
-                let name = net.getText();
+                let name = net;
                 let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
                 this.curr!.add_symbol(logic);
                 if (debug) console.log(`${dtag}   add_net(${name}) to ctx '${this.curr!.name}'`);
@@ -117,7 +117,7 @@ export class PulVListener extends VParserListener {
         let width = (ctx.range_()?.getText() || "");
         let regs = util.find_all(v.Variable_identifierContext, ctx);
         for (let reg of regs) {
-            let name = reg.getText();
+            let name = reg;
             let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(logic);
             if (debug) console.log(`${dtag}   add_reg(${name}) to ctx '${this.curr!.name}'`);
@@ -126,8 +126,8 @@ export class PulVListener extends VParserListener {
 
     private add_variable(kind: string, ctx: antlr4.ParserRuleContext, type: any): void {
         let vars = util.find_all(type, ctx);
-        for (let v of vars) {
-            let name = v.getText();
+        for (let va of vars) {
+            let name = va;
             let variable = new Variable(name, kind, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
             this.curr!.add_symbol(variable);
             if (debug) console.log(`${dtag}   add_variable(${name}) to ctx '${this.curr!.name}'`);
@@ -136,7 +136,7 @@ export class PulVListener extends VParserListener {
 
     private add_ref(ctx: v.IdentifierContext|undefined): void {
         if (!ctx) return;
-        let name = ctx.getText();
+        let name = ctx;
         let id = new Id(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         id.port_modu = this.curr_port_modu;
         id.port_name = this.curr_port_name;
@@ -161,11 +161,11 @@ export class PulVListener extends VParserListener {
     enterModule_declaration(ctx: v.Module_declarationContext): void {
         if (ctx.exception) return;
         if (!ctx.module_identifier()) return;
-        let name = ctx.module_identifier().getText();
+        let name = ctx.module_identifier();
         let module = new Module(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         module.add_symbol(module);
         this.push_context(module);
-        this.root!.modules[name] = module;
+        this.root!.modules[module.name] = module;
         if (debug) console.log(`${dtag} enterModule_declaration(${name})`);
     }
 
@@ -198,7 +198,7 @@ export class PulVListener extends VParserListener {
      */
     enterModule_instantiation(ctx: v.Module_instantiationContext): void {
         if (ctx.exception) return;
-        let name = ctx.module_identifier().getText();
+        let name = ctx.module_identifier();
         let group = new InstanceGroup(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         this.push_context(group);
         if (debug) console.log(`${dtag} enterModule_instantiation(${name})`);
@@ -212,10 +212,10 @@ export class PulVListener extends VParserListener {
 
     enterModule_instance(ctx: v.Module_instanceContext): void {
         if (ctx.exception) return;
-        let name = ctx.name_of_module_instance().getText();
+        let name = ctx.name_of_module_instance();
         let instance = new Instance(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         this.curr!.parent?.add_symbol(instance);
-        this.root!.instances[name] = instance;
+        this.root!.instances[instance.name] = instance;
         this.push_context(instance);
         if (debug) console.log(`${dtag} enterModule_instance(${name})`);
     }
@@ -229,13 +229,13 @@ export class PulVListener extends VParserListener {
     enterNamed_port_connection(ctx: v.Named_port_connectionContext): void {
         if (ctx.exception) return;
         if (!ctx.port_identifier()) return;
-        let name = ctx.port_identifier().getText();
+        let name = ctx.port_identifier();
         let inst = this.curr! as Instance;
         let modu = inst.parent as InstanceGroup;
         let connector = new Connector(name, ctx, this.source.get_source(ctx.start.tokenIndex));
         inst.connectors.push(connector);
         this.curr_port_modu = modu.name;
-        this.curr_port_name = name;
+        this.curr_port_name = connector.name;
         if (debug) console.log(`${dtag} enterNamed_port_connection(${name})`);
     }
 
@@ -250,7 +250,7 @@ export class PulVListener extends VParserListener {
      */
     enterFunction_declaration(ctx: v.Function_declarationContext): void {
         if (ctx.exception) return;
-        let name = ctx.function_identifier().getText();
+        let name = ctx.function_identifier();
         let func = new Func(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         this.curr!.add_symbol(func);
         this.push_context(func);
@@ -265,7 +265,7 @@ export class PulVListener extends VParserListener {
 
     enterTask_declaration(ctx: v.Task_declarationContext): void {
         if (ctx.exception) return;
-        let name = ctx.task_identifier().getText();
+        let name = ctx.task_identifier();
         let task = new Task(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         this.curr!.add_symbol(task);
         this.push_context(task);
@@ -352,7 +352,7 @@ export class PulVListener extends VParserListener {
 
     enterTime_declaration(ctx: v.Time_declarationContext): void {
         if (ctx.exception) return;
-        this.add_variable('string', ctx, v.Variable_identifierContext);
+        this.add_variable('time', ctx, v.Variable_identifierContext);
         if (debug) console.log(`${dtag} enterTime_declaration()`);
     }
 

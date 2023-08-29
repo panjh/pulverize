@@ -5,7 +5,7 @@ import { Context } from "./Context";
 
 export class Parameter extends Symbol {
 
-    constructor(name: string, value: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
+    constructor(name: antlr4.ParserRuleContext, value: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
         super(name, "param", "", ctx, source, parent);
         this.value = value;
     }

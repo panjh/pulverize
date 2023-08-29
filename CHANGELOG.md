@@ -13,3 +13,6 @@
 
 ### 0.1.3
 * Add hover hint and click-to-declaration to module name
+
+### 0.1.4
+* Semantic tokens colorizer used to provide better color schema for wire, reg, logic, parameter, integer, real or string

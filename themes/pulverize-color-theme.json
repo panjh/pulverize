@@ -700,54 +700,16 @@
             }
         },
 		/* verilog */
-		{
-			"scope": "constant.other.net.verilog",
-			"settings": {
-				"foreground": "#093"
-			}
-		},
-		{
-			"scope": "constant.other.net.systemverilog",
-			"settings": {
-				"foreground": "#093"
-			}
-		},
-		{
-			"scope": "constant.other.define.systemverilog",
-			"settings": {
-				"foreground": "#939"
-			}
-		},
-		{
-			"scope": "constant.other.preprocessor.verilog",
-			"settings": {
-				"foreground": "#939"
-			}
-		},
-		{
-			"scope": "constant.other.preprocessor.systemverilog",
-			"settings": {
-				"foreground": "#939"
-			}
-		},
-		{
-			"scope": "constant.other.verilog",
-			"settings": {
-				"foreground": "#093"
-			}
-		},
-		{
-			"scope": "constant.other.systemverilog",
-			"settings": {
-				"foreground": "#093"
-			}
-		},
-		{
-			"scope": "constant.other.define.verilog",
-			"settings": {
-				"foreground": "#099"
-			}
-		},
+		{ "scope": "constant.other.verilog",                "settings": { "foreground": "#093" } },
+		{ "scope": "constant.other.preprocessor.verilog",   "settings": { "foreground": "#939" } },
+		{ "scope": "constant.other.define.verilog",         "settings": { "foreground": "#099" } },
+		{ "scope": "support.type.verilog",                  "settings": { "foreground": "#C6C" } },
+		{ "scope": "scope.macro.false",                     "settings": { "foreground": "#999" } },
+        { "scope": "variable.symbol.param",                 "settings": { "foreground": "#093" } },
+        { "scope": "variable.symbol.reg",                   "settings": { "foreground": "#9cf" } },
+        { "scope": "variable.symbol.logic",                 "settings": { "foreground": "#6cc" } },
+        { "scope": "variable.symbol.wire",                  "settings": { "foreground": "#36c" } },
+        { "scope": "variable.symbol.sim",                   "settings": { "foreground": "#c96" } },
 		/* punk */
 		{
 			"scope": "support.keyword.punk",

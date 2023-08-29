@@ -7,15 +7,13 @@ import { ContextEntity } from "./ContextEntity";
 
 export class Context extends Entity {
     parent?: Context;
-    kind: string;
     childs: Context[];
     symbols: {[key: string]: Entity[]};
     references: Id[];
 
-    constructor(name: string, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
-        super(name, ctx, source);
+    constructor(name: antlr4.ParserRuleContext|string, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
+        super(name, kind, ctx, source);
         this.parent = parent;
-        this.kind = kind;
         this.childs = [];
         this.symbols = {};
         this.references = [];
@@ -75,13 +73,6 @@ export class Context extends Entity {
 
     to_string(): string {
         return `${this.kind} ${this.name}()`;
-    }
-
-    to_md_string(): vscode.MarkdownString {
-        let md = new vscode.MarkdownString();
-        md.appendMarkdown(this.get_md_desc("context"));
-        md.appendCodeblock(this.to_string(), "verilog");
-        return md;
     }
 
 }

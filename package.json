@@ -2,7 +2,7 @@
     "name": "pulverize",
     "displayName": "Pulverize Verilog Support",
     "description": "Verilog Language Support for FPGA or IC Develop",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "publisher": "edison",
     "icon": "icon.png",
 	"repository": {
@@ -25,10 +25,16 @@
     },
     "categories": [
         "Extension Packs",
-        "Programming Languages"
+        "Programming Languages",
+        "Themes"
     ],
     "activationEvents": [],
     "main": "./out/extension.js",
+    "configurationDefaults": {
+        "verilog": {
+          "editor.semanticHighlighting.enabled": true
+        }
+    },
     "contributes": {
         "commands": [
             {
@@ -56,23 +62,10 @@
                 ],
                 "extensions": [
                     ".v",
-                    ".V",
-                    ".vh",
-                    ".vl"
+                    ".sv",
+                    ".vh"
                 ],
                 "configuration": "./config/v.configuration.json"
-            },
-            {
-                "id": "systemverilog",
-                "aliases": [
-                    "System Verilog",
-                    "systemverilog"
-                ],
-                "extensions": [
-                    ".sv",
-                    ".SV"
-                ],
-                "configuration": "./config/sv.configuration.json"
             },
             {
                 "id": "punk",
@@ -93,11 +86,6 @@
                 "path": "./syntaxes/v.tmLanguage.json"
             },
             {
-                "language": "systemverilog",
-                "scopeName": "source.systemverilog",
-                "path": "./syntaxes/sv.tmLanguage.json"
-            },
-            {
                 "language": "punk",
                 "scopeName": "source.punk",
                 "path": "./syntaxes/punk.tmLanguage.json"
@@ -108,6 +96,18 @@
                 "label": "Pulverize Dark Modern",
                 "uiTheme": "vs-dark",
                 "path": "./themes/pulverize-color-theme.json"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "scopes": {
+                    "macro.false": ["scope.macro.false"],
+                    "variable.wire": ["variable.symbol.wire"],
+                    "variable.reg": ["variable.symbol.reg"],
+                    "variable.logic": ["variable.symbol.logic"],
+                    "variable.param": ["variable.symbol.param"],
+                    "variable.sim": ["variable.symbol.sim"]
+                }
             }
         ]
     },

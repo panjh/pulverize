@@ -9,6 +9,7 @@ import { PulErrorListener } from "./PulErrorListener";
 import { BufferedTokenStream } from "../stream/BufferedTokenStream";
 import { Module } from "./entity/Module";
 import { Context } from "./entity/Context";
+import { Symbol } from "./entity/Symbol";
 import { PulConfig } from "./PulConfig";
 
 import VLexer from "../v/VLexer";
@@ -16,6 +17,7 @@ import VParser from "../v/VParser";
 import { PulVPreParser } from "./PulVPreParser";
 import { PulVListener } from "./PulVListener";
 import { ModuleProvider } from "./ModuleProvider";
+import { SemaTokens } from "./SemaTokens";
 
 // systemverilog is not full supported, partial supported by verilog with some pactch
 // import SVLexer from "../sv/SVLexer";
@@ -91,7 +93,10 @@ export class PulParser implements SourceLoader, ModuleProvider {
             let start_ms = Date.now();
             let pre = new PulVPreParser(source, this, source.diags_lexer = []);
             source.valid = pre.parse();
-            if (source.valid) source.root = this.do_parse_v(source, pre.get_lexer(), pre.get_tokens());
+            if (source.valid) {
+                source.root = this.do_parse_v(source, pre.get_lexer(), pre.get_tokens());
+                source.sema_tokens = pre.sema_tokens;
+            }
             let millis = Date.now() - start_ms;
             console.log(`${dtag} '${source.path}' pased in ${millis}ms`);
             this.check(source.path);
@@ -108,6 +113,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
         let source = this.load(path);
         if (source?.root) {
             source.diags_linter = [];
+            source.sema_tokens = source.sema_tokens.filter(st => st.kind == 'ignore');
             this.do_check(source.root, source);
             this.bind_source(source);
         }
@@ -115,6 +121,26 @@ export class PulParser implements SourceLoader, ModuleProvider {
 
     private do_check(ctx: Context, source: Source): boolean {
         let no_error = true;
+        for (let symbols of Object.values(ctx.symbols)) {
+            for (let symbol of symbols) {
+                if (!(symbol instanceof Symbol)) continue;
+                if (symbol.source != source) continue;
+                let rng = symbol.name_rng;
+                if (!rng) continue;
+                switch (symbol.kind) {
+                case "wire": source.sema_tokens.push(new SemaTokens(rng, "wire")); break;
+                case "reg": source.sema_tokens.push(new SemaTokens(rng, "reg")); break;
+                case "logic": source.sema_tokens.push(new SemaTokens(rng, "logic")); break;
+                case "param": source.sema_tokens.push(new SemaTokens(rng, "param")); break;
+                case 'genvar':
+                case 'integer':
+                case 'string':
+                case 'real':
+                case 'time':
+                case 'realtime': source.sema_tokens.push(new SemaTokens(rng, "sim")); break;
+                }
+            }
+        }
         for (let id of ctx.references) {
             let symbol = ctx.find_symbol(id.name, id.root_beg);
             let rng = id.root_rng;
@@ -136,6 +162,20 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 diag.source = "pul-linter";
                 source.diags_linter.push(diag);
                 no_error = false;
+            }
+            else if (id.source == source) {
+                switch (symbol.kind) {
+                case "wire": source.sema_tokens.push(new SemaTokens(rng, "wire")); break;
+                case "reg": source.sema_tokens.push(new SemaTokens(rng, "reg")); break;
+                case "logic": source.sema_tokens.push(new SemaTokens(rng, "logic")); break;
+                case "param": source.sema_tokens.push(new SemaTokens(rng, "param")); break;
+                case 'genvar':
+                case 'integer':
+                case 'string':
+                case 'real':
+                case 'time':
+                case 'realtime': source.sema_tokens.push(new SemaTokens(rng, "sim")); break;
+                }
             }
         }
         for (let child of ctx.childs) {

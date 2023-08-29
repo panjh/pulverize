@@ -11,6 +11,6 @@ This is a Verilog extension for VS Code
     * '**.**' in module instance context leads to ports
     * '**$**' leads to symbols
 * Quick fix for missing symbol
-* Color theme for verilog and system-verilog
+* Semantic color theme for verilog and system-verilog
 
 **Enjoy!**

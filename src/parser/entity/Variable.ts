@@ -5,7 +5,7 @@ import { Context } from "./Context";
 
 export class Variable extends Symbol {
 
-    constructor(name: string, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
+    constructor(name: antlr4.ParserRuleContext, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
         super(name, kind, "", ctx, source, parent);
     }
 };

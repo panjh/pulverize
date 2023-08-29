@@ -8,7 +8,7 @@ export class Instance extends Context {
 
     connectors: Connector[];
 
-    constructor(name: string, ctx: antlr4.ParserRuleContext, source: Source, parent: InstanceGroup) {
+    constructor(name: antlr4.ParserRuleContext, ctx: antlr4.ParserRuleContext, source: Source, parent: InstanceGroup) {
         super(name, parent.name, ctx, source, parent);
         this.connectors = [];
     }
@@ -21,6 +21,6 @@ export class Instance extends Context {
     }
 
     to_string(): string {
-        return `(instance) ${this.kind} ${this.name}`;
+        return `${this.kind} ${this.name}`;
     }
 }

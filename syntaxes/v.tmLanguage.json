@@ -1,9 +1,9 @@
 {
     "fileTypes": [
         "v",
+        "sv",
         "vh"
     ],
-    "keyEquivalent": "^~V",
     "name": "Verilog",
     "patterns": [
         {
@@ -701,10 +701,6 @@
                     "name": "constant.numeric.time.verilog"
                 },
                 {
-                    "match": "\\b([A-Z][A-Z0-9_]*)\\b",
-                    "name": "constant.other.net.verilog"
-                },
-                {
                     "match": "(`ifdef|`ifndef|`default_nettype)\\s+(\\w+)",
                     "captures": {
                         "1": {
@@ -851,7 +847,7 @@
         "storage-type-verilog": {
             "patterns": [
                 {
-                    "match": "\\s*\\b(var|wire|tri|tri[01]|supply[01]|wand|triand|wor|trior|trireg|reg|integer|int|longint|shortint|byte|shortreal|string|time|realtime|real|process|void)\\b",
+                    "match": "\\s*\\b(var|wire|tri|tri[01]|supply[01]|wand|triand|wor|trior|trireg|reg|logic|integer|int|longint|shortint|byte|shortreal|string|time|realtime|real|process|void)\\b",
                     "name": "storage.type.verilog"
                 },
                 {

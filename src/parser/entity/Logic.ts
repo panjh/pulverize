@@ -5,7 +5,7 @@ import { Context } from "./Context";
 
 export class Logic extends Symbol {
 
-    constructor(name: string, kind: string, width: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
+    constructor(name: antlr4.ParserRuleContext, kind: string, width: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
         super(name, kind, width, ctx, source, parent);
     }
 };

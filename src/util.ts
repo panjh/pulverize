@@ -14,12 +14,12 @@ export function get_path_language(path: string): Lang {
     else return Lang.UNKNOWN;
 }
 
-export function find_one<T>(type: any, ctx: antlr4.RuleContext): T|undefined {
+export function find_one<T>(type: any, ctx: antlr4.ParserRuleContext): T|undefined {
     if (ctx instanceof type) return ctx as T;
     if (!(ctx instanceof antlr4.ParserRuleContext) || !ctx.children) return undefined;
 
     for (let child of ctx.children) {
-        if (!(child instanceof antlr4.RuleContext)) continue;
+        if (!(child instanceof antlr4.ParserRuleContext)) continue;
         let t = find_one<T>(type, child);
         if (t) return t;
     }
@@ -27,13 +27,13 @@ export function find_one<T>(type: any, ctx: antlr4.RuleContext): T|undefined {
 }
 
 
-export function find_all<T extends antlr4.RuleContext>(type: any, ctx: antlr4.RuleContext, elems?: T[]): T[] {
+export function find_all<T extends antlr4.ParserRuleContext>(type: any, ctx: antlr4.ParserRuleContext, elems?: T[]): T[] {
     if (!elems) elems = [];
     if (ctx instanceof type) elems.push(ctx as T);
     if (!(ctx instanceof antlr4.ParserRuleContext) || !ctx.children) return elems;
 
     for (let child of ctx.children) {
-        if (!(child instanceof antlr4.RuleContext)) continue;
+        if (!(child instanceof antlr4.ParserRuleContext)) continue;
         find_all(type, child, elems);
     }
     return elems;
@@ -174,5 +174,5 @@ export function zero_fill(num: number, width: number): string {
 }
 
 export function token_range(first: antlr4.Token, last: antlr4.Token): vscode.Range {
-    return new vscode.Range(first.line-1, first.column, last.line-1, last.column+last.text.length-1);
+    return new vscode.Range(first.line-1, first.column, last.line-1, last.column+last.text.length);
 }

@@ -7,9 +7,10 @@ import { Source } from "./entity/Source";
 import { SourceLoader } from "./SourceLoader";
 import { Include } from "./entity/Include";
 import { Macro } from "./entity/Macro";
+import { SemaTokens } from "./SemaTokens";
 
 const CHN_NORMAL = 0;
-const CHN_SPCACE = 1;
+const CHN_SPACE = 1;
 const CHN_DIRECTIVE = 2;
 const CHN_COMMENTS = 3;
 
@@ -53,7 +54,7 @@ class LexWrapper {
                 if (override.line) tok.line += override.line - 1;
             }
             this.pos = tok.start;
-            if (tok.channel == CHN_SPCACE || tok.channel == CHN_COMMENTS) continue;
+            if (tok.channel == CHN_SPACE) continue;
             if (debug_next) console.log(`${dtag} READ      . @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}      (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
             if (kind === undefined || tok.type == kind) return tok;
             console.error(`${dtag} ${tok.text} at ${tok.line}:${tok.column} is not type ${VLexer.literalNames[kind]}`);
@@ -68,6 +69,7 @@ export class PulVPreParser {
     source: Source;
     loader: SourceLoader;
     tokens: antlr4.Token[];
+    sema_tokens: SemaTokens[];
     if_state: number[];
     if_depth: number;
 
@@ -76,6 +78,7 @@ export class PulVPreParser {
         this.source = source;
         this.loader = loader;
         this.tokens = [];
+        this.sema_tokens = [];
         this.if_state = [];
         this.if_depth = 0;
     }
@@ -98,38 +101,51 @@ export class PulVPreParser {
                 break;
             }
 
-            if (tok.channel == CHN_NORMAL) {
-                if (this.check_if()) this.add(tok, lex.root_override);
+            if (tok.channel == CHN_NORMAL || tok.channel == CHN_COMMENTS) {
+                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                else if (tok.channel == CHN_NORMAL) this.add(tok, lex.root_override);
                 continue;
             }
 
             switch (tok.type) {
             case VLexer.INCLUDE_DIRECTIVE:
-                if (this.check_if() && !this.include_directive(lex, tok)) return false;
+                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                else if (!this.include_directive(lex, tok)) return false;
                 break;
             case VLexer.DEFINE_DIRECTIVE:
-                if (this.check_if() && !this.define_directive(lex, tok)) return false;
+                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                else if (!this.define_directive(lex, tok)) return false;
                 break;
             case VLexer.UNDEF_DIRECTIVE:
-                if (this.check_if() && !this.undef_directive(lex, tok)) return false;
+                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                else if (!this.undef_directive(lex, tok)) return false;
                 break;
             case VLexer.MACRO_USAGE:
-                if (this.check_if() && !this.macro_usage(lex, tok)) return false;
+                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                else if (!this.macro_usage(lex, tok)) return false;
                 break;
             case VLexer.IFDEF_DIRECTIVE:
-                if (!this.ifdef_directive(lex, tok)) return false;
+                ++this.if_depth;
+                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                else if (!this.ifdef_directive(lex, tok)) return false;
                 break;
             case VLexer.IFNDEF_DIRECTIVE:
-                if (!this.ifndef_directive(lex, tok)) return false;
+                ++this.if_depth;
+                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                else if (!this.ifndef_directive(lex, tok)) return false;
                 break;
             case VLexer.ELSIF_DIRECTIVE:
-                if (!this.elsif_directive(lex, tok)) return false;
+                if (!this.check_if() && this.if_depth > this.if_state.length) this.ignore(tok, lex.root_override);
+                else if (!this.elsif_directive(lex, tok)) return false;
                 break;
             case VLexer.ELSE_DIRECTIVE:
-                if (!this.else_directive(lex, tok)) return false;
+                if (!this.check_if() && this.if_depth > this.if_state.length) this.ignore(tok, lex.root_override);
+                else if (!this.else_directive(lex, tok)) return false;
                 break;
             case VLexer.ENDIF_DIRECTIVE:
-                if (!this.endif_directive(lex, tok)) return false;
+                --this.if_depth;
+                if (!this.check_if() && this.if_depth+1 > this.if_state.length) this.ignore(tok, lex.root_override);
+                else if (!this.endif_directive(lex, tok)) return false;
                 break;
             }
         }
@@ -147,6 +163,13 @@ export class PulVPreParser {
         tok.tokenIndex = this.tokens.length;
         this.tokens.push(tok);
         if (debug_add) console.log(`${dtag} WRITE ${util.pad(tok.tokenIndex, 4)}. @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}|${util.pad((tok as any).root_beg||-1, 4)} (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
+    }
+
+    private ignore(tok: antlr4.Token, root_override?: any): void {
+        let rng: vscode.Range = (root_override?.rng || (tok as any).root_rng) || new vscode.Range(tok.line-1, tok.column, tok.line-1, tok.column+tok.text.length);
+        let last = this.sema_tokens.at(-1);
+        if (last && last.kind == "ignore" && last.in_same_line(rng)) last.union(rng);
+        else this.sema_tokens.push(new SemaTokens(rng, "ignore"));
     }
 
     /*
@@ -252,8 +275,6 @@ export class PulVPreParser {
      * `ifdef MACRO
      */
     private ifdef_directive(lex: LexWrapper, token: antlr4.Token): boolean {
-        ++this.if_depth;
-        if (!this.check_if()) return true;
         let tok = lex.next(VLexer.SIMPLE_IDENTIFIER);
         if (!tok) return false;
         let name = tok.text;
@@ -266,8 +287,6 @@ export class PulVPreParser {
      * `ifndef MACRO
      */
     private ifndef_directive(lex: LexWrapper, token: antlr4.Token): boolean {
-        ++this.if_depth;
-        if (!this.check_if()) return true;
         let tok = lex.next(VLexer.SIMPLE_IDENTIFIER);
         if (!tok) return false;
         let name = tok.text;
@@ -280,7 +299,6 @@ export class PulVPreParser {
      * `elsif MACRO
      */
     private elsif_directive(lex: LexWrapper, token: antlr4.Token): boolean {
-        if (!this.check_if() && this.if_depth > this.if_state.length) return true;
         let tok = lex.next(VLexer.SIMPLE_IDENTIFIER);
         if (!tok) return false;
         let name = tok.text;
@@ -296,7 +314,6 @@ export class PulVPreParser {
      * `else
      */
     private else_directive(lex: LexWrapper, token: antlr4.Token): boolean {
-        if (!this.check_if() && this.if_depth > this.if_state.length) return true;
         if (debug) console.log(`${dtag} else`);
         switch (this.if_state[this.if_state.length-1]) {
         case IF_FALSE:  this.if_state[this.if_state.length-1] = IF_TRUE; break;
@@ -309,8 +326,6 @@ export class PulVPreParser {
      * `endif
      */
     private endif_directive(lex: LexWrapper, token: antlr4.Token): boolean {
-        --this.if_depth;
-        if (!this.check_if() && this.if_depth+1 > this.if_state.length) return true;
         if (debug) console.log(`${dtag} endif`);
         this.if_state.pop();
         return true;

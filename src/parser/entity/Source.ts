@@ -3,6 +3,7 @@ import * as util from "../../util";
 import { Root } from "./Root";
 import { Macro } from "./Macro";
 import { Include } from "./Include";
+import { SemaTokens } from "../SemaTokens";
 
 export class Source {
     path: string;
@@ -12,6 +13,7 @@ export class Source {
     macros: {[key: string]: Macro[]};
     valid: boolean;
     root?: Root;
+    sema_tokens: SemaTokens[];
     diags_lexer: vscode.Diagnostic[];
     diags_parser: vscode.Diagnostic[];
     diags_linter: vscode.Diagnostic[];
@@ -23,6 +25,8 @@ export class Source {
         this.includes = [];
         this.macros = {};
         this.valid = false;
+        this.root = undefined;
+        this.sema_tokens = [];
         this.diags_lexer = [];
         this.diags_parser = [];
         this.diags_linter = [];
@@ -31,10 +35,11 @@ export class Source {
     reset(code: string, mtime: number) {
         this.code = code;
         this.mtime = mtime;
-        this.root = undefined;
-        this.valid = false;
         this.includes = [];
         this.macros = {};
+        this.valid = false;
+        this.root = undefined;
+        this.sema_tokens = [];
     }
 
     get_source(tok_index: number): Source {

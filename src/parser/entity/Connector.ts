@@ -4,8 +4,8 @@ import { Source } from "./Source.d";
 
 export class Connector extends Entity {
 
-    constructor(name: string, ctx: antlr4.ParserRuleContext, source: Source) {
-        super(name, ctx, source);
+    constructor(name: antlr4.ParserRuleContext, ctx: antlr4.ParserRuleContext, source: Source) {
+        super(name, "connect", ctx, source);
     }
 
 };

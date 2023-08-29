@@ -6,6 +6,8 @@ import { Source } from "./Source.d";
 export class Entity {
     source: Source;
     name: string;
+    name_rng?: vscode.Range;
+    kind: string;
     tok_index: number;
 
     beg: number;
@@ -20,9 +22,16 @@ export class Entity {
     scope_end: number;
 
 
-    constructor(name: string, ctx: antlr4.ParserRuleContext, source: Source) {
+    constructor(name: antlr4.ParserRuleContext|string, kind: string, ctx: antlr4.ParserRuleContext, source: Source) {
         this.source = source;
-        this.name = name;
+        if (name instanceof antlr4.ParserRuleContext) {
+            this.name = name.getText();
+            this.name_rng = util.token_range(name.start, name.stop!);
+        }
+        else {
+            this.name = name as string;
+        }
+        this.kind = kind;
         this.tok_index = ctx.start.tokenIndex;
 
         this.beg = ctx.start.start;
@@ -43,7 +52,7 @@ export class Entity {
 
     to_md_string(): vscode.MarkdownString {
         let md = new vscode.MarkdownString();
-        md.appendMarkdown(this.get_md_desc("entity"));
+        md.appendMarkdown(this.get_md_desc(this.kind));
         md.appendCodeblock(this.to_string(), "verilog");
         return md;
     }

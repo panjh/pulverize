@@ -8,7 +8,7 @@ export class Procedure extends Context {
 
     ports: Port[];
 
-    constructor(name: string, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent: Context) {
+    constructor(name: antlr4.ParserRuleContext, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent: Context) {
         super(name, kind, ctx, source, parent);
         this.ports = [];
     }
@@ -24,10 +24,4 @@ export class Procedure extends Context {
         return `${this.kind} ${this.name}(${this.ports.map(p => p.to_string()).join(",")})`;
     }
 
-    to_md_string(): vscode.MarkdownString {
-        let md = new vscode.MarkdownString();
-        md.appendMarkdown(this.get_md_desc("procedure"));
-        md.appendCodeblock(this.to_string(), "verilog");
-        return md;
-    }
 }
