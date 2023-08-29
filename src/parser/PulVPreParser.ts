@@ -94,6 +94,7 @@ export class PulVPreParser {
 
     parse(lex?: LexWrapper): boolean {
         if (!lex) lex = this.lex_main;
+        let main = (lex == this.lex_main);
         while (true) {
             let tok = lex.next()!;
             if (tok.type == VLexer.EOF) {
@@ -102,49 +103,49 @@ export class PulVPreParser {
             }
 
             if (tok.channel == CHN_NORMAL || tok.channel == CHN_COMMENTS) {
-                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                if (!this.check_if()) this.ignore(tok, main, lex.root_override);
                 else if (tok.channel == CHN_NORMAL) this.add(tok, lex.root_override);
                 continue;
             }
 
             switch (tok.type) {
             case VLexer.INCLUDE_DIRECTIVE:
-                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                if (!this.check_if()) this.ignore(tok, main, lex.root_override);
                 else if (!this.include_directive(lex, tok)) return false;
                 break;
             case VLexer.DEFINE_DIRECTIVE:
-                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                if (!this.check_if()) this.ignore(tok, main, lex.root_override);
                 else if (!this.define_directive(lex, tok)) return false;
                 break;
             case VLexer.UNDEF_DIRECTIVE:
-                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                if (!this.check_if()) this.ignore(tok, main, lex.root_override);
                 else if (!this.undef_directive(lex, tok)) return false;
                 break;
             case VLexer.MACRO_USAGE:
-                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                if (!this.check_if()) this.ignore(tok, main, lex.root_override);
                 else if (!this.macro_usage(lex, tok)) return false;
                 break;
             case VLexer.IFDEF_DIRECTIVE:
                 ++this.if_depth;
-                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                if (!this.check_if()) this.ignore(tok, main, lex.root_override);
                 else if (!this.ifdef_directive(lex, tok)) return false;
                 break;
             case VLexer.IFNDEF_DIRECTIVE:
                 ++this.if_depth;
-                if (!this.check_if()) this.ignore(tok, lex.root_override);
+                if (!this.check_if()) this.ignore(tok, main, lex.root_override);
                 else if (!this.ifndef_directive(lex, tok)) return false;
                 break;
             case VLexer.ELSIF_DIRECTIVE:
-                if (!this.check_if() && this.if_depth > this.if_state.length) this.ignore(tok, lex.root_override);
+                if (!this.check_if() && this.if_depth > this.if_state.length) this.ignore(tok, main, lex.root_override);
                 else if (!this.elsif_directive(lex, tok)) return false;
                 break;
             case VLexer.ELSE_DIRECTIVE:
-                if (!this.check_if() && this.if_depth > this.if_state.length) this.ignore(tok, lex.root_override);
+                if (!this.check_if() && this.if_depth > this.if_state.length) this.ignore(tok, main, lex.root_override);
                 else if (!this.else_directive(lex, tok)) return false;
                 break;
             case VLexer.ENDIF_DIRECTIVE:
                 --this.if_depth;
-                if (!this.check_if() && this.if_depth+1 > this.if_state.length) this.ignore(tok, lex.root_override);
+                if (!this.check_if() && this.if_depth+1 > this.if_state.length) this.ignore(tok, main, lex.root_override);
                 else if (!this.endif_directive(lex, tok)) return false;
                 break;
             }
@@ -165,7 +166,8 @@ export class PulVPreParser {
         if (debug_add) console.log(`${dtag} WRITE ${util.pad(tok.tokenIndex, 4)}. @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}|${util.pad((tok as any).root_beg||-1, 4)} (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
     }
 
-    private ignore(tok: antlr4.Token, root_override?: any): void {
+    private ignore(tok: antlr4.Token, main: boolean, root_override?: any): void {
+        if (!main) return;
         let rng: vscode.Range = (root_override?.rng || (tok as any).root_rng) || new vscode.Range(tok.line-1, tok.column, tok.line-1, tok.column+tok.text.length);
         let last = this.sema_tokens.at(-1);
         if (last && last.kind == "ignore" && last.in_same_line(rng)) last.union(rng);

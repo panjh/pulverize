@@ -1,6 +1,6 @@
 import * as util from "../util";
 
-let debug = true;
+let debug = false;
 let dtag = "[PulConfig]";
 let CONFIG = ".vscode/pulverize.json";
 

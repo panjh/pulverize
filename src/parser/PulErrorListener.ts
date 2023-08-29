@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as antlr4 from "../antlr4";
 
-let debug = true;
+let debug = false;
 let dtag = "[PulErrorListener]";
 
 export class PulErrorListener extends antlr4.ErrorListener<any> {

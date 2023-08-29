@@ -133,7 +133,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 case "logic": source.sema_tokens.push(new SemaTokens(rng, "logic")); break;
                 case "param": source.sema_tokens.push(new SemaTokens(rng, "param")); break;
                 case 'genvar':
-                case 'integer':
+                case 'integer': case 'int': case 'shortint': case 'longint':
                 case 'string':
                 case 'real':
                 case 'time':
@@ -170,7 +170,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 case "logic": source.sema_tokens.push(new SemaTokens(rng, "logic")); break;
                 case "param": source.sema_tokens.push(new SemaTokens(rng, "param")); break;
                 case 'genvar':
-                case 'integer':
+                case 'integer': case 'int': case 'shortint': case 'longint':
                 case 'string':
                 case 'real':
                 case 'time':
