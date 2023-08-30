@@ -8,6 +8,7 @@ import { SourceLoader } from "./SourceLoader";
 import { Include } from "./entity/Include";
 import { Macro } from "./entity/Macro";
 import { SemaTokens } from "./SemaTokens";
+import { RefToken } from "./entity/RefToken";
 
 const CHN_NORMAL = 0;
 const CHN_SPACE = 1;
@@ -158,17 +159,17 @@ export class PulVPreParser {
     }
 
     private add(tok: antlr4.Token, root_override?: any): void {
-        if (root_override?.beg !== undefined) (tok as any).root_beg = root_override.beg;
-        if (root_override?.end !== undefined) (tok as any).root_end = root_override.end;
-        if (root_override?.rng !== undefined) (tok as any).root_rng = root_override.rng;
+        if (root_override?.beg !== undefined) (tok as RefToken).root_beg = root_override.beg;
+        if (root_override?.end !== undefined) (tok as RefToken).root_end = root_override.end;
+        if (root_override?.rng !== undefined) (tok as RefToken).root_rng = root_override.rng;
         tok.tokenIndex = this.tokens.length;
         this.tokens.push(tok);
-        if (debug_add) console.log(`${dtag} WRITE ${util.pad(tok.tokenIndex, 4)}. @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}|${util.pad((tok as any).root_beg||-1, 4)} (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
+        if (debug_add) console.log(`${dtag} WRITE ${util.pad(tok.tokenIndex, 4)}. @${util.pad(tok.line, 4)}:${util.pad(tok.column, 3)}|${util.pad((tok as RefToken).root_beg||-1, 4)} (${tok.channel}) ${util.pad(VLexer.symbolicNames[tok.type], 20)}: ${tok.text.trim()}`);
     }
 
     private ignore(tok: antlr4.Token, main: boolean, root_override?: any): void {
         if (!main) return;
-        let rng: vscode.Range = (root_override?.rng || (tok as any).root_rng) || new vscode.Range(tok.line-1, tok.column, tok.line-1, tok.column+tok.text.length);
+        let rng: vscode.Range = (root_override?.rng || (tok as RefToken).root_rng) || new vscode.Range(tok.line-1, tok.column, tok.line-1, tok.column+tok.text.length);
         let last = this.sema_tokens.at(-1);
         if (last && last.kind == "ignore" && last.in_same_line(rng)) last.union(rng);
         else this.sema_tokens.push(new SemaTokens(rng, "ignore"));

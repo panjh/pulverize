@@ -709,7 +709,7 @@
         { "scope": "variable.symbol.reg",                   "settings": { "foreground": "#9cf" } },
         { "scope": "variable.symbol.logic",                 "settings": { "foreground": "#6cc" } },
         { "scope": "variable.symbol.wire",                  "settings": { "foreground": "#69c" } },
-        { "scope": "variable.symbol.sim",                   "settings": { "foreground": "#c96" } },
+        { "scope": "variable.symbol.sim",                   "settings": { "foreground": "#9c6" } },
 		/* punk */
 		{
 			"scope": "support.keyword.punk",

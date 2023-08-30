@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as antlr4 from "../../antlr4";
 import * as util from "../../util";
 import { Source } from "./Source.d";
+import { RefToken } from "./RefToken";
 
 export class Entity {
     source: Source;
@@ -9,6 +10,7 @@ export class Entity {
     name_rng?: vscode.Range;
     kind: string;
     tok_index: number;
+    origin: boolean;
 
     beg: number;
     end: number;
@@ -33,14 +35,15 @@ export class Entity {
         }
         this.kind = kind;
         this.tok_index = ctx.start.tokenIndex;
+        this.origin = ((ctx.start as RefToken).root_beg === undefined);
 
         this.beg = ctx.start.start;
         this.end = ctx.stop!.stop;
         this.rng = util.token_range(ctx.start, ctx.stop!);
 
-        this.root_beg = (ctx.start as any).root_beg || this.beg;
-        this.root_end = (ctx.start as any).root_end || this.end;
-        this.root_rng = (ctx.start as any).root_rng || this.rng;
+        this.root_beg = (ctx.start as RefToken).root_beg || this.beg;
+        this.root_end = (ctx.start as RefToken).root_end || this.end;
+        this.root_rng = (ctx.start as RefToken).root_rng || this.rng;
 
         this.scope_beg = this.root_beg;
         this.scope_end = -1;

@@ -19,12 +19,6 @@ import { PulVListener } from "./PulVListener";
 import { ModuleProvider } from "./ModuleProvider";
 import { SemaTokens } from "./SemaTokens";
 
-// systemverilog is not full supported, partial supported by verilog with some pactch
-// import SVLexer from "../sv/SVLexer";
-// import SVParser from "../sv/SVParser";
-// import { PulSVListener } from "./PulSVListener";
-// import { PulSVPreParser } from "./PulSVPreParser";
-
 let debug = false;
 let dtag = "[PulParser]";
 
@@ -124,7 +118,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
         for (let symbols of Object.values(ctx.symbols)) {
             for (let symbol of symbols) {
                 if (!(symbol instanceof Symbol)) continue;
-                if (symbol.source != source) continue;
+                if (!symbol.origin) continue;
                 let rng = symbol.name_rng;
                 if (!rng) continue;
                 switch (symbol.kind) {
@@ -163,7 +157,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 source.diags_linter.push(diag);
                 no_error = false;
             }
-            else if (id.source == source) {
+            else if (id.origin) {
                 switch (symbol.kind) {
                 case "wire": source.sema_tokens.push(new SemaTokens(rng, "wire")); break;
                 case "reg": source.sema_tokens.push(new SemaTokens(rng, "reg")); break;
@@ -194,17 +188,6 @@ export class PulParser implements SourceLoader, ModuleProvider {
         antlr4.ParseTreeWalker.DEFAULT.walk(listener, ast);
         return listener.get_root();
     }
-
-    // private do_parse_sv(source: Source, lexer: SVLexer, tokens: antlr4.Token[]): Root|undefined {
-    //     let toks = new BufferedTokenStream(lexer, tokens);
-    //     // let toks = new ChannelTokenStream(lexer, 0, locater.get_tokens());
-    //     let parser = new SVParser(toks as antlr4.TokenStream);
-    //     new PulErrorListener("pul-parser", source.diags_parser = [], parser);
-    //     let ast = parser.parse();
-    //     let listener = new PulSVListener(source);
-    //     antlr4.ParseTreeWalker.DEFAULT.walk(listener, ast);
-    //     return listener.get_root();
-    // }
 
     async parse_all(): Promise<void> {
         let root_path = util.workdir();

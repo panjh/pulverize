@@ -29,8 +29,8 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
         }
         case util.SymbolKind.VARIABLE: {
             let symbol = ctx.find_symbol(sym.word, pos);
-            if (debug) console.log(`${dtag} symbol='${symbol?.name}'`);
             if (!symbol) return null;
+            if (debug) console.log(`${dtag} symbol='${symbol.name}' loc='${symbol.get_path()}:${symbol.rng.start.line+1}:${symbol.rng.start.character+1}`);
             return new vscode.Location(vscode.Uri.file(symbol.get_path()), symbol.rng);
         }
         case util.SymbolKind.FILE: {

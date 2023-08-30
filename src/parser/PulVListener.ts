@@ -405,6 +405,20 @@ export class PulVListener extends VParserListener {
         if (debug) console.log(`${dtag} enterNet_lvalue()`);
     }
 
+    enterGenvar_initialization(ctx: v.Genvar_initializationContext): void {
+        if (ctx.exception) return;
+        let id = ctx.genvar_identifier().identifier();
+        this.add_ref(id);
+        if (debug) console.log(`${dtag} enterGenvar_initialization()`);
+    }
+
+    enterGenvar_iteration(ctx: v.Genvar_iterationContext): void {
+        if (ctx.exception) return;
+        let id = ctx.genvar_identifier().identifier();
+        this.add_ref(id);
+        if (debug) console.log(`${dtag} enterGenvar_iteration()`);
+    }
+
     /*
      * always
      */
