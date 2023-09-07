@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 
 export class SemaTokens {
+    name: string;
     rng: vscode.Range;
     kind: string;
 
-    constructor(rng: vscode.Range, kind: string) {
+    constructor(name: string, rng: vscode.Range, kind: string) {
+        this.name = name;
         this.rng = rng;
         this.kind = kind;
     }
@@ -18,7 +20,7 @@ export class SemaTokens {
     }
 
     to_string(): string {
-        return `token(${this.kind}) at ${this.rng.start.line}:[${this.rng.start.character}:${this.rng.end.character}]`;
+        return `${this.kind} token '${this.name}' at ${this.rng.start.line}:[${this.rng.start.character}:${this.rng.end.character}]`;
     }
 
 }

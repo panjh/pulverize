@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
 import * as util from './util';
-import { CompletionItemProvider } from './completion/CompletionItemProvider';
-import { DefinitionProvider } from './completion/DefinitionProvider';
-import { HoverProvider } from './completion/HoverProvider';
-import { CodeActionProvider } from './completion/CodeActionProvider';
-import { DocumentSymbolProvider } from './completion/DocumentProvider';
+import { CompletionItemProvider } from './provide/CompletionItemProvider';
+import { DefinitionProvider } from './provide/DefinitionProvider';
+import { HoverProvider } from './provide/HoverProvider';
+import { CodeActionProvider } from './provide/CodeActionProvider';
+import { DocumentSymbolProvider } from './provide/DocumentProvider';
 import { PulParser } from './parser/PulParser';
-import { SemanticTokensProvider } from './completion/SemanticTokensProvider';
+import { SemanticTokensProvider } from './provide/SemanticTokensProvider';
+import { ReferenceProvider } from './provide/ReferenceProvider';
 
 let debug = false;
 let dtag = "[extension]";
@@ -22,6 +23,7 @@ export async function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(vscode.languages.registerCompletionItemProvider(lang, new CompletionItemProvider(), '.', '`', '$'));
         context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(lang, new DocumentSymbolProvider()));
         context.subscriptions.push(vscode.languages.registerCodeActionsProvider(lang, new CodeActionProvider()));
+        context.subscriptions.push(vscode.languages.registerReferenceProvider(lang, new ReferenceProvider()));
     }
 
     context.subscriptions.push(vscode.commands.registerCommand('pulverize.parse', () => {
@@ -35,14 +37,6 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('pulverize.parse_all', () => {
         if (debug) console.log(`${dtag} command pulverize.parse_all`);
         PulParser.inst().parse_all();
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('pulverize.check', () => {
-        if (debug) console.log(`${dtag} command pulverize.check`);
-        if (!vscode.window.activeTextEditor) return;
-        let doc = vscode.window.activeTextEditor.document;
-        let path = doc.uri.path.substring(1);
-        PulParser.inst().check(path);
-        PulParser.inst().update_diagnostics();
     }));
 
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(doc => {

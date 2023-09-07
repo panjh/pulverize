@@ -3,96 +3,125 @@
     "scopeName":"source.punk",
     "fileTypes":["punk"],
     "patterns":[
-        {"include":"#comment"},
-        {"include":"#string"},
-        {"include":"#punk"}
+        {"include": "#comment"},
+        {"include": "#string"},
+        {"include": "#number"},
+        {"include": "#register"},
+        {"include": "#memory"},
+        {"include": "#keyword"},
+        {"include": "#keyword.macro"},
+        {"include": "#variable"},
+        {"include": "#label"},
+        {"include": "#parameter"},
+        {"include": "#statement"}
     ],
     "repository":{
         "comment": {
-            "match": "(?:^|\\s++)(?:((#!).*)|((#).*))",
+            "match": "(?:^|\\s+)(#[^\\$].*)",
             "captures": {
                 "1": {
-                    "name": "comment.line.number-sign.shell meta.shebang.shell"
-                },
-                "2": {
-                    "name": "punctuation.definition.comment.shebang.shell"
-                },
-                "3": {
-                    "name": "comment.line.number-sign.shell"
-                },
-                "4": {
-                    "name": "punctuation.definition.comment.shell"
+                    "name": "comment"
                 }
             }
         },
         "string": {
+            "begin": "\"",
+            "end": "\"",
+            "name": "string"
+        },
+        "number": {
             "patterns": [
                 {
-                    "match": "\\\\.",
-                    "name": "constant.character.escape.shell"
+                    "match": "\\b-?(0[xX]|\\d+'[hH])[\\da-fA-F_]+\\b",
+                    "name": "constant.numeric.hex"
                 },
                 {
-                    "begin": "\"",
-                    "end": "\"",
-                    "beginCaptures": {
-                        "0": {
-                            "name": "punctuation.definition.string.begin.shell"
-                        }
-                    },
-                    "endCaptures": {
-                        "0": {
-                            "name": "punctuation.definition.string.end.shell"
-                        }
-                    },
-                    "name": "string.quoted.double.shell",
-                    "patterns": [
-                        {
-                            "match": "\\\\[\\$\\n`\"\\\\]",
-                            "name": "constant.character.escape.shell"
-                        },
-                        {
-                            "include": "#variable"
-                        },
-                        {
-                            "include": "#interpolation"
-                        }
-                    ]
+                    "match": "\\b-?(0[bB]|\\d+'[bB])[01_]+\\b",
+                    "name": "constant.numeric.bin"
+                },
+                {
+                    "match": "\\b-?(0[oO]|\\d+'[oO])[0-7_]+\\b",
+                    "name": "constant.numeric.oct"
+                },
+                {
+                    "match": "\\b-?(0[dD]|\\d+'[dD])?[\\d_]+\\b",
+                    "name": "constant.numeric.dec"
                 }
             ]
         },
-        "punk": {
+        "register": {
+            "match": "\\bR\\d+\\b",
+            "name": "variable.register"
+        },
+        "memory": {
+            "match": "\\bM\\d+\\b",
+            "name": "variable.memory"
+        },
+        "keyword": {
+            "match": "\\b(mov|to|from|shift|keep|add|sub|shr|shl|and|or|xor|not|cmp|jmp|jeq|jne|jlt|jle|jgt|jge|if|wait|trigger|high|low|rise|fall|abs|rel|ticks|delay|data|read|write|fetch|frame|hmask|vmask|rev|exit|print|load|store|otp|id|rewind|home|break|slide|heater|otd|on|off|tempcal|region|zone|tempctrl|global|occl)\\b",
+            "name": "keyword"
+        },
+        "keyword.macro": {
+            "match": "(^|\\s)\\.(while|if|forever|else|elif|break)\\b",
+            "name": "keyword.macro"
+        },
+        "variable": {
+            "match": "\\$\\w+\\b",
+            "name": "variable.define"
+        },
+        "label": {
+            "match": "@\\w+\\b",
+            "name": "label"
+        },
+        "parameter": {
+            "match": "\\b[A-Z_0-9]+\\b",
+            "name": "parameter"
+        },
+        "statement": {
             "patterns": [
                 {
-                    "match": "(?<=^|;|\\s|\\|)(nop|mov|to|from|shift|keep|add|sub|shr|shl|and|or|xor|not|mul|jmp|if|wait|trigger|high|low|rise|fall|abs|rel|ticks|now|data|break|read|write|fetch|frame|hmask|vmask|rev|pdata|exit|print|load|store|otp|rewind|home|heater|otd|on|off|tempcal|region|zone|tempctrl|global|otd|occl|id)(?=$|;|\\s||\\|)",
-                    "name": "support.keyword.punk"
+                    "begin": "\\$\\{",
+                    "end": "\\}",
+                    "name": "statement.template",
+                    "beginCaptures": {
+                        "0": { "name": "keyword.template" }
+                    },
+                    "endCaptures": {
+                        "0": { "name": "keyword.template" }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#number"
+                        },
+                        {
+                            "match": "\\b\\w+\\b",
+                            "name": "variable.template"
+                        }
+                    ]
                 },
                 {
-                    "match": "(?<=^|\\s|[~;,\\+\\-\\=\\!])(@[a-zA-Z_][a-zA-Z0-9_\\.]*:?)(?=$|\\s||[;,\\+\\-\\=\\!])",
-                    "name": "support.label.punk"
-                },
-                {
-                    "match": "(?<=^|\\s|[~;,\\+\\-\\=\\<\\>\\!\\(\\[\\{])([0-9]+'[dhbo][0-9a-fA-F]+|[1-9][0-9]+|0[xX][0-9A-Fa-f]+|0[bB][01]+|[0-9])(?=$|\\s||[;,\\+\\-\\=\\!])",
-                    "name": "support.number.punk"
-                },
-                {
-                    "match": "(?<=^|\\s|[~;,\\+\\-\\=\\<\\>\\!\\(\\[\\{])(R(0|[1-9][0-9]?))(?=$|\\s||[;,\\+\\-\\=\\!])",
-                    "name": "support.register.punk"
-                },
-                {
-                    "match": "(?<=^|\\s|[~;,\\+\\-\\=\\!\\(\\[\\{])(\\$[a-zA-Z_][a-zA-Z0-9_\\.]*:?)(?=$|\\s||[;,\\+\\-\\=\\!])",
-                    "name": "support.variable.punk"
-                },
-                {
-                    "match": "(?<=^|;|\\s|\\|)(\\.while|\\.if|\\.else|\\.elif|\\.forever|\\.break)(?=$|;|\\s|\\|)",
-                    "name": "support.macro.punk"
-                },
-                {
-                    "match": "(?<=^|\\s|[~;,\\+\\-\\=\\!\\(\\[\\{])(M(0|[1-9][0-9]?))(?=$|\\s||[;,\\+\\-\\=\\!])",
-                    "name": "support.memory.punk"
-                },
-                {
-                    "match": "(?<=^|\\s|[~;,\\+\\-\\=\\!])([A-Z][A-Z0-9_]+)(?=$|\\s||[;,\\+\\-\\=\\!])",
-                    "name": "support.parameter.punk"
+                    "begin": "^#\\$",
+                    "end": "$",
+                    "name": "statement.template",
+                    "beginCaptures": {
+                        "0": { "name": "keyword.template" }
+                    },
+                    "endCaptures": {
+                        "0": { "name": "keyword.template" }
+                    },
+                    "patterns": [
+                        {
+                            "match": "\\b(if|else|endif|for|in|at|sep|endfor)\\b",
+                            "name": "keyword.template"
+                        },
+                        {
+                            "include": "#number"
+                        },
+                        {
+                            "match": "\\b\\w+\\b",
+                            "name": "variable.template"
+                        }
+                    ]
                 }
             ]
         }

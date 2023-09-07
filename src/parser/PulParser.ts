@@ -10,6 +10,7 @@ import { BufferedTokenStream } from "../stream/BufferedTokenStream";
 import { Module } from "./entity/Module";
 import { Context } from "./entity/Context";
 import { Symbol } from "./entity/Symbol";
+import { Entity } from "./entity/Entity";
 import { PulConfig } from "./PulConfig";
 
 import VLexer from "../v/VLexer";
@@ -18,6 +19,7 @@ import { PulVPreParser } from "./PulVPreParser";
 import { PulVListener } from "./PulVListener";
 import { ModuleProvider } from "./ModuleProvider";
 import { SemaTokens } from "./SemaTokens";
+import { Id } from "./entity/Id";
 
 let debug = false;
 let dtag = "[PulParser]";
@@ -58,26 +60,35 @@ export class PulParser implements SourceLoader, ModuleProvider {
         return this.modules[name];
     }
 
-    load(path: string): Source|undefined {
+    load(path: string, code?: string): Source|undefined {
         path = path.replace(/\\/g, '/');
-        let mtime = util.file_mtime(path);
-        if (!mtime) return undefined;
         let source = this.sources[path];
-        let stime = (source ? source.mtime : -1);
-        if (debug) console.log(`${dtag} root ${path} found ${!!source} modified ${mtime > stime}`);
-        if (stime >= mtime) return source;
-        let code = util.file_read(path);
+        let mtime = Date.now();
+        if (code === undefined) {
+            mtime = util.file_mtime(path);
+            if (mtime < 0) return undefined;
+            let stime = (source ? source.mtime : -1);
+            if (debug) console.log(`${dtag} root ${path} found ${!!source} modified ${mtime > stime}`);
+            if (stime >= mtime) return source;
+            code = util.file_read(path);
+        }
+        else if (source && source.code == code) {
+            return source;
+        }
         if (source) {
             this.unbind_source(source);
             source.reset(code, mtime);
         }
-        else this.sources[path] = source = new Source(path, code, mtime);
+        else {
+            source = new Source(path, code, mtime);
+            this.sources[path] = source;
+        }
         source.add_macros(this.macros);
         return source;
     }
 
-    parse(path: string, force?: boolean): Root|undefined {
-        let source = this.load(path);
+    parse(path: string, force?: boolean, code?: string): Root|undefined {
+        let source = this.load(path, code);
         if (!source) return undefined;
         if (source.root && !force) return source.root;
 
@@ -85,15 +96,15 @@ export class PulParser implements SourceLoader, ModuleProvider {
         case util.Lang.V:
         case util.Lang.SV:
             let start_ms = Date.now();
-            let pre = new PulVPreParser(source, this, source.diags_lexer = []);
+            let pre = new PulVPreParser(source, this, source.diags_lexer);
             source.valid = pre.parse();
             if (source.valid) {
                 source.root = this.do_parse_v(source, pre.get_lexer(), pre.get_tokens());
                 source.sema_tokens = pre.sema_tokens;
+                this.check(source);
             }
             let millis = Date.now() - start_ms;
             console.log(`${dtag} '${source.path}' pased in ${millis}ms`);
-            this.check(source.path);
             break;
         default:
             if (debug) console.log(`${dtag} '${source.path}' is not verilog file`);
@@ -103,10 +114,8 @@ export class PulParser implements SourceLoader, ModuleProvider {
         return source.root;
     }
 
-    check(path: string) {
-        let source = this.load(path);
-        if (source?.root) {
-            source.diags_linter = [];
+    private check(source: Source) {
+        if (source.root) {
             source.sema_tokens = source.sema_tokens.filter(st => st.kind == 'ignore');
             this.do_check(source.root, source);
             this.bind_source(source);
@@ -121,17 +130,18 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 if (!symbol.origin) continue;
                 let rng = symbol.name_rng;
                 if (!rng) continue;
+                let name = symbol.name;
                 switch (symbol.kind) {
-                case "wire": source.sema_tokens.push(new SemaTokens(rng, "wire")); break;
-                case "reg": source.sema_tokens.push(new SemaTokens(rng, "reg")); break;
-                case "logic": source.sema_tokens.push(new SemaTokens(rng, "logic")); break;
-                case "param": source.sema_tokens.push(new SemaTokens(rng, "param")); break;
+                case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
+                case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
+                case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
+                case "param": source.sema_tokens.push(new SemaTokens(name, rng, "param")); break;
                 case 'genvar':
                 case 'integer': case 'int': case 'shortint': case 'longint':
                 case 'string':
                 case 'real':
                 case 'time':
-                case 'realtime': source.sema_tokens.push(new SemaTokens(rng, "sim")); break;
+                case 'realtime': source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
                 }
             }
         }
@@ -158,17 +168,18 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 no_error = false;
             }
             else if (id.origin) {
+                let name = id.name;
                 switch (symbol.kind) {
-                case "wire": source.sema_tokens.push(new SemaTokens(rng, "wire")); break;
-                case "reg": source.sema_tokens.push(new SemaTokens(rng, "reg")); break;
-                case "logic": source.sema_tokens.push(new SemaTokens(rng, "logic")); break;
-                case "param": source.sema_tokens.push(new SemaTokens(rng, "param")); break;
+                case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
+                case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
+                case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
+                case "param": source.sema_tokens.push(new SemaTokens(name, rng, "param")); break;
                 case 'genvar':
                 case 'integer': case 'int': case 'shortint': case 'longint':
                 case 'string':
                 case 'real':
                 case 'time':
-                case 'realtime': source.sema_tokens.push(new SemaTokens(rng, "sim")); break;
+                case 'realtime': source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
                 }
             }
         }
@@ -182,7 +193,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
         let toks = new BufferedTokenStream(lexer, tokens);
         // let toks = new ChannelTokenStream(lexer, 0, locater.get_tokens());
         let parser = new VParser(toks as antlr4.TokenStream);
-        new PulErrorListener("pul-parser", source.diags_parser = [], parser);
+        new PulErrorListener("pul-parser", source.diags_parser, parser);
         let ast = parser.parse();
         let listener = new PulVListener(source, this);
         antlr4.ParseTreeWalker.DEFAULT.walk(listener, ast);
@@ -289,6 +300,24 @@ export class PulParser implements SourceLoader, ModuleProvider {
         }
         for (let [path, diags] of Object.entries(inc_diags_map)) {
             this.diags.set(vscode.Uri.file(path), Object.values(diags));
+        }
+    }
+
+    find_references(entity: Entity): Id[] {
+        let refs: Symbol[] = [];
+        for (let module of Object.values(this.modules)) {
+            this.find_references_in(module, entity, refs);
+        }
+        return refs;
+    }
+
+    private find_references_in(ctx: Context, entity: Entity, refs: Id[]): void {
+        for (let id of ctx.references) {
+            let symbol = ctx.find_symbol(id.name, id.root_beg);
+            if (symbol === entity) refs.push(id);
+        }
+        for (let child of ctx.childs) {
+            this.find_references_in(child, entity, refs);
         }
     }
 

@@ -711,58 +711,14 @@
         { "scope": "variable.symbol.wire",                  "settings": { "foreground": "#69c" } },
         { "scope": "variable.symbol.sim",                   "settings": { "foreground": "#9c6" } },
 		/* punk */
-		{
-			"scope": "support.keyword.punk",
-			"settings": {
-				"foreground": "#C586C0",
-				"fontStyle": "bold"
-			}
-		},
-		{
-			"scope": "support.label.punk",
-			"settings": {
-				"foreground": "#86b6c5",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "support.number.punk",
-			"settings": {
-				"foreground": "#86c5b7"
-			}
-		},
-		{
-			"scope": "support.register.punk",
-			"settings": {
-				"foreground": "#5367c2"
-			}
-		},
-		{
-			"scope": "support.macro.punk",
-			"settings": {
-				"foreground": "#8a72a7",
-				"fontStyle": "bold"
-			}
-		},
-		{
-			"scope": "support.memory.punk",
-			"settings": {
-				"foreground": "#51c56a"
-			}
-		},
-		{
-			"scope": "support.parameter.punk",
-			"settings": {
-				"foreground": "#018534",
-				"fontStyle": "italic"
-			}
-		}
+		{ "scope": "variable.register",                     "settings": { "foreground": "#56c" } },
+		{ "scope": "variable.memory",                       "settings": { "foreground": "#5c6" } },
+		{ "scope": "variable.define",                       "settings": { "foreground": "#699", "fontStyle": "italic" } },
+		{ "scope": "variable.template",                     "settings": { "foreground": "#c6c" } },
+		{ "scope": "keyword.template",                      "settings": { "foreground": "#86c" } },
+		{ "scope": "keyword.macro",                         "settings": { "fontStyle": "bold" } },
+		{ "scope": "label",                                 "settings": { "foreground": "#8cc", "fontStyle": "italic" } },
+		{ "scope": "parameter",                             "settings": { "foreground": "#083", "fontStyle": "italic" } },
 	],
-	"semanticHighlighting": true,
-	"semanticTokenColors": {
-        "newOperator": "#d4d4d4",
-        "stringLiteral": "#ce9178",
-        "customLiteral": "#D4D4D4",
-        "numberLiteral": "#b5cea8"
-    }
+	"semanticHighlighting": true
 }

@@ -2,7 +2,7 @@
     "name": "pulverize",
     "displayName": "Pulverize Verilog Support",
     "description": "Verilog Language Support for FPGA or IC Develop",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "publisher": "edison",
     "icon": "icon.png",
 	"repository": {
@@ -45,11 +45,6 @@
             {
                 "command": "pulverize.parse_all",
                 "title": "Parse all files and rebuild index",
-                "category": "pulverize"
-            },
-            {
-                "command": "pulverize.check",
-                "title": "Check current file for syntax error",
                 "category": "pulverize"
             }
         ],

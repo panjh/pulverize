@@ -69,7 +69,7 @@ export function file_write(path: string, data: string): void {
 export function file_mtime(path: string): number {
     if (!fs.existsSync(path) || fs.statSync(path).isDirectory()) {
         if (debug) console.log(`${dtag} file ${path} not found`);
-        return 0;
+        return -1;
     }
     return fs.statSync(path).mtime.getTime();
 }

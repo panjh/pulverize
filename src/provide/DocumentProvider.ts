@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as util from '../util';
 import { PulParser } from '../parser/PulParser';
 
 let debug = false;

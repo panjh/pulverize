@@ -172,7 +172,7 @@ export class PulVPreParser {
         let rng: vscode.Range = (root_override?.rng || (tok as RefToken).root_rng) || new vscode.Range(tok.line-1, tok.column, tok.line-1, tok.column+tok.text.length);
         let last = this.sema_tokens.at(-1);
         if (last && last.kind == "ignore" && last.in_same_line(rng)) last.union(rng);
-        else this.sema_tokens.push(new SemaTokens(rng, "ignore"));
+        else this.sema_tokens.push(new SemaTokens(tok.text, rng, "ignore"));
     }
 
     /*

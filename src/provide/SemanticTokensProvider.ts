@@ -7,6 +7,7 @@ let dtag = "[SemanticTokensProvider]";
 
 export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
 
+    latest_time: number = 0;
     types = ['macro', 'variable'];
     modifiers = ['false', 'reg', 'wire', 'logic', 'param', 'sim'];
     legend = new vscode.SemanticTokensLegend(this.types, this.modifiers);
@@ -16,8 +17,27 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
     }
 
     provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SemanticTokens> {
-        let root = PulParser.inst().parse(document.uri.fsPath);
-        if (!root) return null;
+        return this.get_semantic_tokens(document);
+        // let curr_time = Date.now();
+        // this.latest_time = curr_time;
+        // if (debug) console.log(`${dtag} invoke ${curr_time}`);
+        // return new Promise<vscode.SemanticTokens|undefined>((resolve, reject) => {
+        //     setTimeout(() => {
+        //         if (debug) console.log(`${dtag} execute ${curr_time} latest ${this.latest_time}`);
+        //         if (this.latest_time != curr_time) {
+        //             if (debug) console.log(`${dtag} canceled`);
+        //             reject();
+        //             return;
+        //         }
+
+        //         resolve(this.get_semantic_tokens(document));
+        //     }, 500);
+        // });
+    }
+
+    private get_semantic_tokens(document: vscode.TextDocument): vscode.SemanticTokens|undefined {
+        let root = PulParser.inst().parse(document.uri.fsPath, false, (document.isDirty ? document.getText() : undefined));
+        if (!root) return undefined;
         if (debug) console.log(`${dtag} tokens of '${document.uri.fsPath}'`);
         let source = root.source as Source;
         let builder = new vscode.SemanticTokensBuilder(this.legend);

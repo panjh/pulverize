@@ -5,6 +5,9 @@ import { Macro } from "./Macro";
 import { Include } from "./Include";
 import { SemaTokens } from "../SemaTokens";
 
+let debug = false;
+let dtag = "[Source]";
+
 export class Source {
     path: string;
     code: string;
@@ -40,6 +43,10 @@ export class Source {
         this.valid = false;
         this.root = undefined;
         this.sema_tokens = [];
+        this.diags_lexer = [];
+        this.diags_parser = [];
+        this.diags_linter = [];
+        if (debug) console.log(`${dtag} reset '${this.path}`);
     }
 
     get_source(tok_index: number): Source {

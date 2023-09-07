@@ -12,5 +12,6 @@ This is a Verilog extension for VS Code
     * '**$**' leads to symbols
 * Quick fix for missing symbol
 * Semantic color theme for verilog and system-verilog
+* Find references of symbols
 
 **Enjoy!**

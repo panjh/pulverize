@@ -16,3 +16,7 @@
 
 ### 0.1.4
 * Semantic tokens colorizer used to provide better color schema for wire, reg, logic, parameter, integer, real or string
+
+### 0.1.5
+* Find references of symboles
+* Parse files on file dirty change
