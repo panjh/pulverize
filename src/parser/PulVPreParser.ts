@@ -9,6 +9,7 @@ import { Include } from "./entity/Include";
 import { Macro } from "./entity/Macro";
 import { SemaTokens } from "./SemaTokens";
 import { RefToken } from "./entity/RefToken";
+import { PulConfig } from "./PulConfig";
 
 const CHN_NORMAL = 0;
 const CHN_SPACE = 1;
@@ -187,7 +188,12 @@ export class PulVPreParser {
         if (debug) console.log(`${dtag} include='${path}'`);
         let inc_source = this.loader.load(path);
         if (!inc_source) {
-            lex.err.syntaxError(lex.lexer, tok, token.line, token.column, `include file '${path}' not found`);
+            if (PulConfig.inst().lint["include-not-found"] !== false) {
+                let rng = new vscode.Range(token.line-1, token.column, token.line-1, token.column+token.text.length);
+                let diag = new vscode.Diagnostic(rng, `include file '${path}' not found`, vscode.DiagnosticSeverity.Warning);
+                diag.source = "pul-linter[include-not-found]";
+                this.source.diags_linter.push(diag);
+            }
             return true;
         }
         let inc = new Include(inc_source);
@@ -260,7 +266,12 @@ export class PulVPreParser {
         let macro = this.source.find_macro_by_idx(name, this.tokens.length);
         if (debug) console.log(`${dtag} macro='${name}' value='${macro?.to_string()}'`);
         if (!macro) {
-            lex.err.syntaxError(lex.lexer, token, token.line, token.column, `macro '${name}' not found`);
+            if (PulConfig.inst().lint["macro-not-found"] !== false) {
+                let rng = new vscode.Range(token.line-1, token.column, token.line-1, token.column+token.text.length);
+                let diag = new vscode.Diagnostic(rng, `macro '${name}' not found`, vscode.DiagnosticSeverity.Warning);
+                diag.source = "pul-linter[macro-not-found]";
+                this.source.diags_linter.push(diag);
+            }
             return true;
         }
         for (let tok of macro.tokens) {

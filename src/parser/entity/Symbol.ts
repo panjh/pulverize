@@ -10,6 +10,9 @@ export class Symbol extends Entity {
     width: string;
     value?: string;
 
+    width_symbol?: number;
+    width_value?: number;
+
     constructor(name: antlr4.ParserRuleContext, kind: string, width: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
         super(name, kind, ctx, source);
         this.parent = parent;

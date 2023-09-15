@@ -51,11 +51,11 @@
         },
         "register": {
             "match": "\\bR\\d+\\b",
-            "name": "variable.register"
+            "name": "variable.reg.punk"
         },
         "memory": {
             "match": "\\bM\\d+\\b",
-            "name": "variable.memory"
+            "name": "entity.name.tag.mem.punk"
         },
         "keyword": {
             "match": "\\b(mov|to|from|shift|keep|add|sub|shr|shl|and|or|xor|not|cmp|jmp|jeq|jne|jlt|jle|jgt|jge|if|wait|trigger|high|low|rise|fall|abs|rel|ticks|delay|data|read|write|fetch|frame|hmask|vmask|rev|exit|print|load|store|otp|id|rewind|home|break|slide|heater|otd|on|off|tempcal|region|zone|tempctrl|global|occl)\\b",
@@ -63,19 +63,19 @@
         },
         "keyword.macro": {
             "match": "(^|\\s)\\.(while|if|forever|else|elif|break)\\b",
-            "name": "keyword.macro"
+            "name": "markup.bold.macro.punk"
         },
         "variable": {
             "match": "\\$\\w+\\b",
-            "name": "variable.define"
+            "name": "constant.regexp.define.punk"
         },
         "label": {
             "match": "@\\w+\\b",
-            "name": "label"
+            "name": "entity.name.label.punk"
         },
         "parameter": {
             "match": "\\b[A-Z_0-9]+\\b",
-            "name": "parameter"
+            "name": "entity.name.type.param.punk"
         },
         "statement": {
             "patterns": [
@@ -84,10 +84,10 @@
                     "end": "\\}",
                     "name": "statement.template",
                     "beginCaptures": {
-                        "0": { "name": "keyword.template" }
+                        "0": { "name": "keyword.operator.stmt.tpl.punk" }
                     },
                     "endCaptures": {
-                        "0": { "name": "keyword.template" }
+                        "0": { "name": "keyword.operator.stmt.tpl.punk" }
                     },
                     "patterns": [
                         {
@@ -95,7 +95,7 @@
                         },
                         {
                             "match": "\\b\\w+\\b",
-                            "name": "variable.template"
+                            "name": "string.regexp.var.tpl.punk"
                         }
                     ]
                 },
@@ -104,22 +104,22 @@
                     "end": "$",
                     "name": "statement.template",
                     "beginCaptures": {
-                        "0": { "name": "keyword.template" }
+                        "0": { "name": "keyword.operator.stmt.tpl.punk" }
                     },
                     "endCaptures": {
-                        "0": { "name": "keyword.template" }
+                        "0": { "name": "keyword.operator.stmt.tpl.punk" }
                     },
                     "patterns": [
                         {
                             "match": "\\b(if|else|endif|for|in|at|sep|endfor)\\b",
-                            "name": "keyword.template"
+                            "name": "string.regexp.var.tpl.punk"
                         },
                         {
                             "include": "#number"
                         },
                         {
                             "match": "\\b\\w+\\b",
-                            "name": "variable.template"
+                            "name": "string.regexp.var.tpl.punk"
                         }
                     ]
                 }

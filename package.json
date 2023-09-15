@@ -2,7 +2,7 @@
     "name": "pulverize",
     "displayName": "Pulverize Verilog Support",
     "description": "Verilog Language Support for FPGA or IC Develop",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "publisher": "edison",
     "icon": "icon.png",
 	"repository": {
@@ -96,12 +96,12 @@
         "semanticTokenScopes": [
             {
                 "scopes": {
-                    "macro.false": ["scope.macro.false"],
-                    "variable.wire": ["variable.symbol.wire"],
-                    "variable.reg": ["variable.symbol.reg"],
-                    "variable.logic": ["variable.symbol.logic"],
-                    "variable.param": ["variable.symbol.param"],
-                    "variable.sim": ["variable.symbol.sim"]
+                    "macro.false": ["comment.disable.verilog"],
+                    "variable.wire": ["entity.name.tag.wire.verilog"],
+                    "variable.reg": ["variable.reg.verilog"],
+                    "variable.logic": ["variable.css.logic.verilog"],
+                    "variable.param": ["entity.name.type.param.verilog"],
+                    "variable.sim": ["entity.name.tag.css.sim.verilog"]
                 }
             }
         ]

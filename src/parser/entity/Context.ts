@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as antlr4 from "../../antlr4";
 import { Entity } from "./Entity";
+import { Symbol } from "./Symbol";
 import { Source } from "./Source.d";
 import { Id } from "./Id";
 import { ContextEntity } from "./ContextEntity";

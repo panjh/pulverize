@@ -8,6 +8,8 @@ import { DocumentSymbolProvider } from './provide/DocumentProvider';
 import { PulParser } from './parser/PulParser';
 import { SemanticTokensProvider } from './provide/SemanticTokensProvider';
 import { ReferenceProvider } from './provide/ReferenceProvider';
+import { PulLinter } from './parser/PulLinter';
+import { PulConfig } from './parser/PulConfig';
 
 let debug = false;
 let dtag = "[extension]";
@@ -31,12 +33,13 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!vscode.window.activeTextEditor) return;
         let doc = vscode.window.activeTextEditor.document;
         let path = doc.uri.path.substring(1);
-        PulParser.inst().parse(path, true);
+        let root = PulParser.inst().parse(path, true);
+        PulLinter.inst().check(root);
         PulParser.inst().update_diagnostics();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('pulverize.parse_all', () => {
         if (debug) console.log(`${dtag} command pulverize.parse_all`);
-        PulParser.inst().parse_all();
+        PulParser.inst().parse_check_all();
     }));
 
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(doc => {
@@ -46,11 +49,16 @@ export async function activate(context: vscode.ExtensionContext) {
         switch (lang) {
         case util.Lang.V:
         case util.Lang.SV:
-            PulParser.inst().parse(path, true);
+            let root = PulParser.inst().parse(path, true);
+            PulLinter.inst().check(root);
             PulParser.inst().update_diagnostics();
             break;
         case util.Lang.VH:
-            PulParser.inst().parse_for_include(path);
+            PulParser.inst().parse_check_for_include(path);
+            break;
+        case util.Lang.CFG:
+            PulConfig.inst().load();
+            vscode.commands.executeCommand('pulverize.parse_all');
             break;
         }
     }));

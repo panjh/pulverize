@@ -20,6 +20,9 @@ import { PulVListener } from "./PulVListener";
 import { ModuleProvider } from "./ModuleProvider";
 import { SemaTokens } from "./SemaTokens";
 import { Id } from "./entity/Id";
+import { Instance } from "./entity/Instance";
+import { InstanceGroup } from "./entity/InstanceGroup";
+import { PulLinter } from "./PulLinter";
 
 let debug = false;
 let dtag = "[PulParser]";
@@ -33,7 +36,6 @@ export class PulParser implements SourceLoader, ModuleProvider {
         return this.INST;
     }
 
-    private cfg: PulConfig;
     private sources: {[key: string]: Source};
     private modules: {[key: string]: Module};
     private macros: Macro[];
@@ -44,11 +46,9 @@ export class PulParser implements SourceLoader, ModuleProvider {
     private diag_map: {[key:string]: vscode.Diagnostic[]};
 
     constructor() {
-        this.cfg = new PulConfig();
-        if (!this.cfg.load()) this.cfg.store();
         this.sources = {};
         this.modules = {};
-        this.macros = this.cfg.define.map(v => new Macro(v));
+        this.macros = PulConfig.inst().define.map(v => new Macro(v));
         this.status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 10000);
         this.file_count = 0;
         this.file_done = 0;
@@ -92,38 +92,29 @@ export class PulParser implements SourceLoader, ModuleProvider {
         if (!source) return undefined;
         if (source.root && !force) return source.root;
 
-        switch (util.get_path_language(path)) {
-        case util.Lang.V:
-        case util.Lang.SV:
-            let start_ms = Date.now();
-            let pre = new PulVPreParser(source, this, source.diags_lexer);
-            source.valid = pre.parse();
-            if (source.valid) {
-                source.root = this.do_parse_v(source, pre.get_lexer(), pre.get_tokens());
-                source.sema_tokens = pre.sema_tokens;
-                this.check(source);
-            }
-            let millis = Date.now() - start_ms;
-            console.log(`${dtag} '${source.path}' pased in ${millis}ms`);
-            break;
-        default:
-            if (debug) console.log(`${dtag} '${source.path}' is not verilog file`);
-            break;
+        let start_ms = Date.now();
+        let pre = new PulVPreParser(source, this, source.diags_lexer);
+        source.valid = pre.parse();
+        if (source.valid) {
+            source.root = this.do_parse_v(source, pre.get_lexer(), pre.get_tokens());
+            source.sema_tokens = pre.sema_tokens;
+            this.semantic(source);
         }
+        let millis = Date.now() - start_ms;
+        console.log(`${dtag} '${source.path}' parsed in ${millis}ms`);
 
+        this.bind_source(source);
         return source.root;
     }
 
-    private check(source: Source) {
-        if (source.root) {
+    private semantic(source?: Source, ctx?: Context, ) {
+        if (!source) return;
+        if (!ctx || ctx == source.root) {
+            ctx = source.root;
             source.sema_tokens = source.sema_tokens.filter(st => st.kind == 'ignore');
-            this.do_check(source.root, source);
-            this.bind_source(source);
         }
-    }
+        if (!ctx) return;
 
-    private do_check(ctx: Context, source: Source): boolean {
-        let no_error = true;
         for (let symbols of Object.values(ctx.symbols)) {
             for (let symbol of symbols) {
                 if (!(symbol instanceof Symbol)) continue;
@@ -132,6 +123,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 if (!rng) continue;
                 let name = symbol.name;
                 switch (symbol.kind) {
+                case "tri":
                 case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
                 case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
                 case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
@@ -145,31 +137,14 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 }
             }
         }
+
         for (let id of ctx.references) {
             let symbol = ctx.find_symbol(id.name, id.root_beg);
             let rng = id.root_rng;
-            if (!symbol) {
-                let code = id.name;
-                if (id.port_name && id.port_modu) {
-                    let modu = this.get_module(id.port_modu);
-                    let port = modu?.get_port(id.port_name);
-                    if (port) code += `,${port.width}`;
-                }
-                let diag = new vscode.Diagnostic(rng, `reference '${id.name}' not found`, vscode.DiagnosticSeverity.Error);
-                diag.source = "pul-linter";
-                diag.code = code;
-                source.diags_linter.push(diag);
-                no_error = false;
-            }
-            else if (!symbol.scope_contains(id.root_beg)) {
-                let diag = new vscode.Diagnostic(rng, `reference '${id.name}' ahead of declaration`, vscode.DiagnosticSeverity.Warning);
-                diag.source = "pul-linter";
-                source.diags_linter.push(diag);
-                no_error = false;
-            }
-            else if (id.origin) {
+            if (id.origin) {
                 let name = id.name;
-                switch (symbol.kind) {
+                switch (symbol?.kind) {
+                case "tri":
                 case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
                 case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
                 case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
@@ -184,9 +159,8 @@ export class PulParser implements SourceLoader, ModuleProvider {
             }
         }
         for (let child of ctx.childs) {
-            no_error &&= this.do_check(child, source);
+            this.semantic(source, child);
         }
-        return no_error;
     }
 
     private do_parse_v(source: Source, lexer: VLexer, tokens: antlr4.Token[]): Root|undefined {
@@ -200,10 +174,10 @@ export class PulParser implements SourceLoader, ModuleProvider {
         return listener.get_root();
     }
 
-    async parse_all(): Promise<void> {
+    async parse_check_all(): Promise<void> {
         let root_path = util.workdir();
         if (!root_path) return undefined;
-        let files = await vscode.workspace.findFiles(`{${this.cfg.source.join(",")}}`, `{${this.cfg.exclude.join(",")}}`);
+        let files = await vscode.workspace.findFiles(`{${PulConfig.inst().source.join(",")}}`, `{${PulConfig.inst().exclude.join(",")}}`);
         if (files.length == 0) return undefined;
 
         this.sources = {};
@@ -218,24 +192,29 @@ export class PulParser implements SourceLoader, ModuleProvider {
             parse_promise = parse_promise.then(() => this.prom_parse(path));
         }
         return parse_promise.then(() => {
+            return this.prom_check(files);
+        }).then(() => {
             this.status.hide();
             this.update_diagnostics();
         });
     }
 
-    parse_for_include(inc_path: string) {
+    parse_check_for_include(inc_path: string) {
         let inc_source = this.load(inc_path);
         if (!inc_source || inc_source.valid) return;
 
         for (let [path, source] of Object.entries(this.sources)) {
-            if (source.has_include(inc_path)) this.parse(path, true);
+            if (source.has_include(inc_path)) {
+                let root = this.parse(path, true);
+                PulLinter.inst().check(root);
+            }
         }
         this.update_diagnostics();
     }
 
     private prom_parse(path: string): Promise<void> {
         return new Promise(resolve => {
-            this.parse(path);
+            this.parse(path, true);
             ++this.file_done;
             let percent = Math.round(this.file_done * 100 / this.file_count);
             this.status.text = `${percent}% of ${this.file_done}/${this.file_count} files indexed`;
@@ -244,7 +223,23 @@ export class PulParser implements SourceLoader, ModuleProvider {
         });
     }
 
-    private unbind_source(source: Source): void {
+    private prom_check(files: vscode.Uri[]): Promise<void> {
+        return new Promise(resolve => {
+            let start_ms = Date.now();
+            for (let file of files) {
+                let path = file.path.substring(1);
+                let source = this.load(path);
+                if (!source?.root) continue;
+                PulLinter.inst().check(source);
+            }
+            let millis = Date.now() - start_ms;
+            console.log(`${dtag} all sources checked in ${millis}ms`);
+            setTimeout(() => resolve(), 1);
+        });
+    }
+
+
+    unbind_source(source: Source): void {
         if (source.root) {
             for (let [name, modu] of Object.entries(this.modules)) {
                 if (modu.parent == source.root) delete this.modules[name];
@@ -257,7 +252,8 @@ export class PulParser implements SourceLoader, ModuleProvider {
         }
     }
 
-    private bind_source(source: Source): void {
+    bind_source(source: Source): void {
+        if (!source.valid) return;
         if (source.root) {
             for (let [name, modu] of Object.entries(source.root.modules)) {
                 this.modules[name] = modu;

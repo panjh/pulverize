@@ -20,3 +20,12 @@
 ### 0.1.5
 * Find references of symboles
 * Parse files on file dirty change
+
+### 0.1.6
+* lint: module-not-found
+* lint: illegal-port
+* lint: width-missmatch
+* lint: reference-not-found
+* lint: refreence-ahead-declaration
+* lint: include-not-found
+* lint: macro-not-found

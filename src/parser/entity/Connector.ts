@@ -4,8 +4,12 @@ import { Source } from "./Source.d";
 
 export class Connector extends Entity {
 
-    constructor(name: antlr4.ParserRuleContext, ctx: antlr4.ParserRuleContext, source: Source) {
+    modu: string;
+    width_value?: number;
+
+    constructor(name: antlr4.ParserRuleContext, modu: string, ctx: antlr4.ParserRuleContext, source: Source) {
         super(name, "connect", ctx, source);
+        this.modu = modu;
     }
 
 };

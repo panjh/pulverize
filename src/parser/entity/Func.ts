@@ -5,6 +5,8 @@ import { Source } from "./Source.d";
 
 export class Func extends Procedure {
 
+    width_symbol?: number;
+
     constructor(name: antlr4.ParserRuleContext, ctx: antlr4.ParserRuleContext, source: Source, parent: Context) {
         super(name, "function", ctx, source, parent);
     }

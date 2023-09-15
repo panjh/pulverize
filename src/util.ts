@@ -1,16 +1,24 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as antlr4 from "./antlr4";
+import { PulConfig } from "./parser/PulConfig";
 
 let debug = false;
 let dtag = "[util]";
 
-export enum Lang { UNKNOWN, V, SV, VH };
+export enum Lang { UNKNOWN, V, SV, VH, CFG };
 
 export function get_path_language(path: string): Lang {
+    let ws = vscode.workspace.workspaceFolders;
+    if (ws && ws[0]) {
+        let ws_path = ws[0].uri.path.substring(1);
+        if (path.startsWith(ws_path)) path = path.substring(ws_path.length + 1);
+    }
+
     if (path.endsWith(".v")) return Lang.V;
     else if (path.endsWith(".sv")) return Lang.SV;
     else if (path.endsWith(".vh")) return Lang.VH;
+    else if (path == PulConfig.PATH) return Lang.CFG;
     else return Lang.UNKNOWN;
 }
 

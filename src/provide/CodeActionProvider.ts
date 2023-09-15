@@ -23,7 +23,7 @@ export class CodeActionProvider implements vscode.CodeActionProvider {
         if (context.diagnostics.length == 0) return null;
         let missing_code: string|undefined;
         for (let diag of context.diagnostics) {
-            if (diag.source == "pul-linter" && diag.code !== undefined) {
+            if (diag.source == "pul-linter[reference-not-found]" && diag.code !== undefined) {
                 missing_code = diag.code as string;
                 break;
             }

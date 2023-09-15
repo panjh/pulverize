@@ -373,10 +373,10 @@
         {
             "captures": {
                 "1": {
-                    "name": "constant.other.define.verilog"
+                    "name": "keyword.directive.verilog"
                 },
                 "2": {
-                    "name": "entity.name.type.define.verilog"
+                    "name": "variable.define"
                 }
             },
             "match": "^\\s*(`define)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
@@ -450,7 +450,7 @@
         },
         {
             "match": "\\b(and|nand|nor|or|xor|xnor|buf|not|bufif[01]|notif[01]|r?[npc]mos|tran|r?tranif[01]|pullup|pulldown)\\b",
-            "name": "support.type.verilog"
+            "name": "keyword.operator.verilog"
         },
         {
             "include": "#strings"
@@ -479,7 +479,7 @@
                     "name": "keyword.other.verilog"
                 },
                 "2": {
-                    "name": "constant.other.verilog"
+                    "name": "variable.symbol.param"
                 }
             }
         },
@@ -704,20 +704,20 @@
                     "match": "(`ifdef|`ifndef|`default_nettype)\\s+(\\w+)",
                     "captures": {
                         "1": {
-                            "name": "constant.other.preprocessor.verilog"
+                            "name": "keyword.directive.verilog"
                         },
                         "2": {
-                            "name": "support.variable.verilog"
+                            "name": "variable.define"
                         }
                     }
                 },
                 {
                     "match": "`(celldefine|else|elsif|endcelldefine|endif|include|line|nounconnected_drive|resetall|timescale|unconnected_drive|undef|begin_\\w+|end_\\w+|remove_\\w+|restore_\\w+)\\b",
-                    "name": "constant.other.preprocessor.verilog"
+                    "name": "keyword.directive.verilog"
                 },
                 {
                     "match": "`\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b",
-                    "name": "constant.other.define.verilog"
+                    "name": "variable.define"
                 },
                 {
                     "match": "\\b(null)\\b",

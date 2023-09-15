@@ -1,6 +1,7 @@
 import * as v from "../v/VParser";
 import * as antlr4 from "../antlr4";
 import * as util from "../util";
+import * as calc from "./calc";
 import VParserListener from "../v/VParserListener";
 import { Connector } from "./entity/Connector";
 import { Context } from "./entity/Context";
@@ -20,6 +21,7 @@ import { Initial } from "./entity/Initial";
 import { Procedure } from "./entity/Procedure";
 import { Source } from "./entity/Source";
 import { ModuleProvider } from "./ModuleProvider";
+import { PulVPreParser } from "./PulVPreParser";
 
 type PortContext = v.Input_declarationContext|v.Inout_declarationContext|v.Output_declarationContext|v.Tf_input_declarationContext|v.Tf_inout_declarationContext|v.Tf_output_declarationContext;
 type ParamContext = v.Parameter_declarationContext|v.Local_parameter_declarationContext;
@@ -28,6 +30,8 @@ let debug = false;
 let dtag = "[PulVListener]";
 
 export class PulVListener extends VParserListener {
+
+    public static INST?: PulVPreParser;
 
     private source: Source;
     private modu_provider: ModuleProvider;
@@ -65,17 +69,19 @@ export class PulVListener extends VParserListener {
         else if (cobj.output_variable_type && cobj.output_variable_type()) kind = cobj.output_variable_type().getText();
         else if (cobj.task_port_type && cobj.task_port_type()) kind = cobj.task_port_type().getText();
         let width = (ctx.range_()?.getText() || "");
+        let width_symbol =  this.width_range(ctx.range_());
         let ports = util.find_all(v.Port_identifierContext, ctx);
         if (!(this.curr instanceof Procedure)) {
             console.error(`${dtag} current context '${this.curr?.name}' is not a procedure`);
             return;
         }
         let proc = this.curr as Procedure;
-        for (let port of ports) {
-            let name = port;
-            let _port = new Port(name, kind, width, dir, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
-            this.curr!.add_symbol(_port);
-            proc.ports.push(_port);
+        for (let po of ports) {
+            let name = po;
+            let port = new Port(name, kind, width, dir, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+            port.width_symbol = width_symbol;
+            this.curr!.add_symbol(port);
+            proc.ports.push(port);
         }
     }
 
@@ -92,12 +98,15 @@ export class PulVListener extends VParserListener {
     private add_net(ctx: v.Net_declarationContext): void {
         let kind = (ctx.net_type()?.getText() || "trireg");
         let width = (ctx.range_()?.getText() || "");
+        let width_symbol = this.width_range(ctx.range_());
         if (ctx.list_of_net_decl_assignments()) {
             for (let net of ctx.list_of_net_decl_assignments().net_decl_assignment_list()) {
                 let name = net.net_identifier();
                 let value = net.expression().getText();
                 let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
                 logic.value = value;
+                logic.width_symbol = width_symbol;
+                logic.width_value = calc.width(net.expression(), this.curr!);
                 this.curr!.add_symbol(logic);
                 if (debug) console.log(`${dtag}   add_net(${name}=${value}) to ctx '${this.curr!.name}'`);
             }
@@ -106,6 +115,7 @@ export class PulVListener extends VParserListener {
             for (let net of ctx.list_of_net_identifiers().net_identifier_list()) {
                 let name = net;
                 let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+                logic.width_symbol = width_symbol;
                 this.curr!.add_symbol(logic);
                 if (debug) console.log(`${dtag}   add_net(${name}) to ctx '${this.curr!.name}'`);
             }
@@ -115,10 +125,12 @@ export class PulVListener extends VParserListener {
     private add_reg(ctx: v.Reg_declarationContext): void {
         let kind = ctx.reg_type().getText();
         let width = (ctx.range_()?.getText() || "");
+        let width_symbol = this.width_range(ctx.range_());
         let regs = util.find_all(v.Variable_identifierContext, ctx);
         for (let reg of regs) {
             let name = reg;
             let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+            logic.width_symbol = width_symbol;
             this.curr!.add_symbol(logic);
             if (debug) console.log(`${dtag}   add_reg(${name}) to ctx '${this.curr!.name}'`);
         }
@@ -232,7 +244,8 @@ export class PulVListener extends VParserListener {
         let name = ctx.port_identifier();
         let inst = this.curr! as Instance;
         let modu = inst.parent as InstanceGroup;
-        let connector = new Connector(name, ctx, this.source.get_source(ctx.start.tokenIndex));
+        let connector = new Connector(name, modu.name, ctx, this.source.get_source(ctx.start.tokenIndex));
+        connector.width_value = calc.width(ctx.expression(), this.curr!);
         inst.connectors.push(connector);
         this.curr_port_modu = modu.name;
         this.curr_port_name = connector.name;
@@ -248,10 +261,27 @@ export class PulVListener extends VParserListener {
     /*
      * function and task declaration
      */
+    private width_range(rng?: v.Range_Context): number|undefined {
+        if (!rng) return 1;
+        try {
+            return eval(rng.msb_constant_expression().getText()) - eval(rng.lsb_constant_expression().getText()) + 1;
+        }
+        catch (e) {}
+        return undefined;
+    }
+
+    private width_func(fn: v.Function_range_or_typeContext): number|undefined {
+        if (fn.range_()) return this.width_range(fn.range_());
+        else if (fn.SHORTINT()) return 16;
+        else if (fn.LONGINT()) return 64;
+        else return 32;
+    }
+
     enterFunction_declaration(ctx: v.Function_declarationContext): void {
         if (ctx.exception) return;
         let name = ctx.function_identifier();
         let func = new Func(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+        func.width_symbol = this.width_func(ctx.function_range_or_type());
         this.curr!.add_symbol(func);
         this.push_context(func);
         if (debug) console.log(`${dtag} enterFunction_declaration(${name})`);
@@ -450,4 +480,5 @@ export class PulVListener extends VParserListener {
         this.pop_context();
         if (debug) console.log(`${dtag} exitInitial_construct()`);
     }
+
 }
