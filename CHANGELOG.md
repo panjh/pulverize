@@ -29,3 +29,6 @@
 * lint: refreence-ahead-declaration
 * lint: include-not-found
 * lint: macro-not-found
+
+### 0.1.7
+* hierarchical identifier hint and click

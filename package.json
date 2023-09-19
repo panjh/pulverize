@@ -2,7 +2,7 @@
     "name": "pulverize",
     "displayName": "Pulverize Verilog Support",
     "description": "Verilog Language Support for FPGA or IC Develop",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "publisher": "edison",
     "icon": "icon.png",
 	"repository": {

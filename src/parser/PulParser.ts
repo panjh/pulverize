@@ -20,9 +20,8 @@ import { PulVListener } from "./PulVListener";
 import { ModuleProvider } from "./ModuleProvider";
 import { SemaTokens } from "./SemaTokens";
 import { Id } from "./entity/Id";
-import { Instance } from "./entity/Instance";
-import { InstanceGroup } from "./entity/InstanceGroup";
 import { PulLinter } from "./PulLinter";
+import { Block } from "./entity/Block";
 
 let debug = false;
 let dtag = "[PulParser]";
@@ -117,7 +116,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
 
         for (let symbols of Object.values(ctx.symbols)) {
             for (let symbol of symbols) {
-                if (!(symbol instanceof Symbol)) continue;
+                if (!(symbol instanceof Symbol) && !(symbol instanceof Block)) continue;
                 if (!symbol.origin) continue;
                 let rng = symbol.name_rng;
                 if (!rng) continue;
@@ -127,13 +126,9 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
                 case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
                 case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
+                case "block":
                 case "param": source.sema_tokens.push(new SemaTokens(name, rng, "param")); break;
-                case 'genvar':
-                case 'integer': case 'int': case 'shortint': case 'longint':
-                case 'string':
-                case 'real':
-                case 'time':
-                case 'realtime': source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
+                default: source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
                 }
             }
         }
@@ -148,13 +143,9 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
                 case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
                 case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
+                case "block":
                 case "param": source.sema_tokens.push(new SemaTokens(name, rng, "param")); break;
-                case 'genvar':
-                case 'integer': case 'int': case 'shortint': case 'longint':
-                case 'string':
-                case 'real':
-                case 'time':
-                case 'realtime': source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
+                default: source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
                 }
             }
         }

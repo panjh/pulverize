@@ -6,10 +6,12 @@ import { Source } from "./Source.d";
 
 export class Instance extends Context {
 
+    modu_name: string;
     connectors: Connector[];
 
     constructor(name: antlr4.ParserRuleContext, ctx: antlr4.ParserRuleContext, source: Source, parent: InstanceGroup) {
-        super(name, parent.name, ctx, source, parent);
+        super(name, "inst", ctx, source, parent);
+        this.modu_name = parent.name;
         this.connectors = [];
     }
 
@@ -21,6 +23,6 @@ export class Instance extends Context {
     }
 
     to_string(): string {
-        return `${this.kind} ${this.name}`;
+        return `${this.modu_name} ${this.name}`;
     }
 }

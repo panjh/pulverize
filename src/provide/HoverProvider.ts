@@ -28,7 +28,7 @@ export class HoverProvider implements vscode.HoverProvider {
             return new vscode.Hover(macro.to_md_string());
         }
         case util.SymbolKind.VARIABLE: {
-            let symbol = ctx.find_symbol(sym.word, pos);
+            let symbol = ctx.find_symbol(sym.word, pos, true);
             if (debug) console.log(`${dtag} symbol='${symbol?.name}'`);
             if (!symbol) return null;
             return new vscode.Hover(symbol.to_md_string());

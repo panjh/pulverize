@@ -6,8 +6,7 @@ import { Instance } from '../parser/entity/Instance';
 import { InstanceGroup } from '../parser/entity/InstanceGroup';
 import { Func } from '../parser/entity/Func';
 import { Task } from '../parser/entity/Task';
-import { Always } from '../parser/entity/Always';
-import { Initial } from '../parser/entity/Initial';
+import { Block } from '../parser/entity/Block';
 
 let debug = false;
 let dtag = "[CodeActionProvider]";
@@ -40,7 +39,7 @@ export class CodeActionProvider implements vscode.CodeActionProvider {
         let action =  new vscode.CodeAction(`Add wire "${name}"`, vscode.CodeActionKind.QuickFix);
         action.edit = new vscode.WorkspaceEdit();
         let insert_pos = new vscode.Position(pos.line, 0);
-        while (ctx instanceof Instance || ctx instanceof InstanceGroup || ctx instanceof Func || ctx instanceof Task || ctx instanceof Always || ctx instanceof Initial) {
+        while (ctx instanceof Instance || ctx instanceof InstanceGroup || ctx instanceof Func || ctx instanceof Task || ctx instanceof Block) {
             insert_pos = new vscode.Position(ctx.root_rng.start.line, 0);
             ctx = ctx.parent!;
         }

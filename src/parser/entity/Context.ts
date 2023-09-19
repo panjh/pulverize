@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import * as antlr4 from "../../antlr4";
 import { Entity } from "./Entity";
-import { Symbol } from "./Symbol";
 import { Source } from "./Source.d";
 import { Id } from "./Id";
 import { ContextEntity } from "./ContextEntity";
+import { PulParser } from "../PulParser";
 
 export class Context extends Entity {
     parent?: Context;
@@ -36,15 +36,31 @@ export class Context extends Entity {
         }
     }
 
-    find_symbol(name: string, pos: number): Entity|undefined {
-        let s = this.symbols[name];
+    find_symbol(name: string, pos?: number, hier?: boolean): Entity|undefined {
+        if (hier === undefined) hier = false;
+        let self_name = name;
+        let child_name: string|undefined;
+        let p = name.indexOf(".");
+        if (p > 0) {
+            self_name = name.substring(0, p);
+            child_name = name.substring(p + 1);
+        }
+        let s = this.symbols[self_name];
         if (s) {
             for (let sym of s) {
-                if (sym.scope_contains(pos)) return sym;
+                if (pos !== undefined && !sym.scope_contains(pos)) continue;
+                if (!hier || !child_name || !(sym instanceof Context)) return sym;
+                let par = sym as Context;
+                let instance = par as any;
+                if (instance.modu_name) {
+                    let module = PulParser.inst().get_module(instance.modu_name);
+                    if (module) par = module;
+                }
+                return par.find_symbol(child_name, undefined, hier);
             }
         }
         if (!this.parent) return undefined;
-        return this.parent.find_symbol(name, pos);
+        return this.parent.find_symbol(name, pos, hier);
     }
 
     get_symbols(pos: number, syms?: Entity[]): Entity[] {

@@ -16,8 +16,7 @@ import { Logic } from "./entity/Logic";
 import { Root } from "./entity/Root";
 import { Id } from "./entity/Id";
 import { Variable } from "./entity/Variable";
-import { Always } from "./entity/Always";
-import { Initial } from "./entity/Initial";
+import { Block } from "./entity/Block";
 import { Procedure } from "./entity/Procedure";
 import { Source } from "./entity/Source";
 import { ModuleProvider } from "./ModuleProvider";
@@ -146,14 +145,15 @@ export class PulVListener extends VParserListener {
         }
     }
 
-    private add_ref(ctx: v.IdentifierContext|undefined): void {
-        if (!ctx) return;
+    private add_ref(ctx: v.IdentifierContext|undefined): Id|undefined {
+        if (!ctx) return undefined;
         let name = ctx;
         let id = new Id(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         id.port_modu = this.curr_port_modu;
         id.port_name = this.curr_port_name;
         this.curr!.references.push(id);
         if (debug) console.log(`${dtag}   add_ref(${name}) to ctx '${this.curr!.name}'`);
+        return id;
     }
 
     /*
@@ -393,22 +393,23 @@ export class PulVListener extends VParserListener {
     }
 
     /*
-     * for|if (...) begin: M   // generate block identifier
-     */
-    enterGenerate_block_identifier(ctx: v.Generate_block_identifierContext): void {
-        if (ctx.exception) return;
-        this.add_variable('block', ctx, v.Generate_block_identifierContext);
-        if (debug) console.log(`${dtag} enterGenerate_block_identifier()`);
-    }
-
-    /*
      * references
      */
     enterPrimary(ctx: v.PrimaryContext): void {
         if (ctx.exception) return;
-        let id = ctx.hierarchical_identifier()?.identifier(0);
-        if (!id) id = ctx.function_call()?.hierarchical_function_identifier().hierarchical_identifier().identifier(0);
-        this.add_ref(id);
+        if (ctx.hierarchical_identifier()) {
+            let names: string[] = [];
+            for (let name of ctx.hierarchical_identifier().identifier_list()) {
+                names.push(name.getText());
+                let id = this.add_ref(name);
+                if (!id) continue;
+                id.name = names.join(".");
+            }
+        }
+        else if (ctx.function_call()) {
+            let id = ctx.function_call().hierarchical_function_identifier().hierarchical_identifier().identifier(0);
+            this.add_ref(id);
+        }
         if (debug) console.log(`${dtag} enterPrimary()`);
     }
 
@@ -450,35 +451,26 @@ export class PulVListener extends VParserListener {
     }
 
     /*
-     * always
+     * block begin: M   // generate block identifier
      */
-    enterAlways_construct(ctx: v.Always_constructContext): void {
+    enterGenerate_block(ctx: v.Generate_blockContext): void {
         if (ctx.exception) return;
-        let always = new Always(ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
-        this.push_context(always);
-        if (debug) console.log(`${dtag} enterAlways_construct()`);
+        let name: antlr4.ParserRuleContext|string = `block-${ctx.start.line}`;
+        if (ctx.generate_block_identifier()) {
+            name = ctx.generate_block_identifier().identifier();
+        }
+        let block = new Block(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+        if (ctx.generate_block_identifier()) {
+            this.curr!.add_symbol(block);
+        }
+        this.push_context(block);
+        if (debug) console.log(`${dtag} enterGenerate_block()`);
     }
 
-    exitAlways_construct(ctx: v.Always_constructContext): void {
+    exitGenerate_block(ctx: v.Generate_blockContext): void {
         if (ctx.exception) return;
         this.pop_context();
-        if (debug) console.log(`${dtag} exitAlways_construct()`);
-    }
-
-    /*
-     * initial
-     */
-    enterInitial_construct(ctx: v.Initial_constructContext): void {
-        if (ctx.exception) return;
-        let initial = new Initial(ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
-        this.push_context(initial);
-        if (debug) console.log(`${dtag} enterInitial_construct()`);
-    }
-
-    exitInitial_construct(ctx: v.Initial_constructContext): void {
-        if (ctx.exception) return;
-        this.pop_context();
-        if (debug) console.log(`${dtag} exitInitial_construct()`);
+        if (debug) console.log(`${dtag} exitGenerate_block()`);
     }
 
 }

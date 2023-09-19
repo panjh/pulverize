@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as antlr4 from "./antlr4";
 import { PulConfig } from "./parser/PulConfig";
+import { Variable } from "./parser/entity/Variable";
 
 let debug = false;
 let dtag = "[util]";
@@ -155,7 +156,9 @@ export function get_symbol(doc: vscode.TextDocument, rng: vscode.Range): SymbolR
         return new SymbolResult(word, SymbolKind.MACRO);
     }
     else if (prefix.endsWith('.')) {
-        return new SymbolResult(word, SymbolKind.FIELD);
+        let m = /\b[\w\.]+$/.exec(prefix) as any;
+        if (m[0] == ".") return new SymbolResult(word, SymbolKind.FIELD);
+        return new SymbolResult(m[0] + word, SymbolKind.VARIABLE);
     }
     else {
         return new SymbolResult(word, SymbolKind.VARIABLE);
