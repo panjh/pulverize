@@ -100,6 +100,7 @@ export class PulVListener extends VParserListener {
         let width_symbol = this.width_range(ctx.range_());
         if (ctx.list_of_net_decl_assignments()) {
             for (let net of ctx.list_of_net_decl_assignments().net_decl_assignment_list()) {
+                if (!net.net_identifier() || !net.expression()) continue;
                 let name = net.net_identifier();
                 let value = net.expression().getText();
                 let logic = new Logic(name, kind, width, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);

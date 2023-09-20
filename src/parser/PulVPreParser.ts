@@ -41,7 +41,7 @@ class LexWrapper {
         this.root_override = root_override;
         let ins = new antlr4.CharStream(source);
         this.lexer = new VLexer(ins);
-        this.err = new PulErrorListener("pul-lexer", diags, this.lexer);
+        this.err = new PulErrorListener(diags, this.lexer);
         this.pos = 0;
     }
 

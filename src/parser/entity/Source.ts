@@ -43,10 +43,13 @@ export class Source {
         this.valid = false;
         this.root = undefined;
         this.sema_tokens = [];
+        this.reset_diags();
+    }
+
+    reset_diags() {
         this.diags_lexer = [];
         this.diags_parser = [];
         this.diags_linter = [];
-        if (debug) console.log(`${dtag} reset '${this.path}`);
     }
 
     get_source(tok_index: number): Source {

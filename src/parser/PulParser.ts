@@ -59,7 +59,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
         return this.modules[name];
     }
 
-    load(path: string, code?: string): Source|undefined {
+    load(path: string, force?: boolean, code?: string): Source|undefined {
         path = path.replace(/\\/g, '/');
         let source = this.sources[path];
         let mtime = Date.now();
@@ -67,16 +67,25 @@ export class PulParser implements SourceLoader, ModuleProvider {
             mtime = util.file_mtime(path);
             if (mtime < 0) return undefined;
             let stime = (source ? source.mtime : -1);
-            if (debug) console.log(`${dtag} root ${path} found ${!!source} modified ${mtime > stime}`);
-            if (stime >= mtime) return source;
+            let modified = (mtime > stime);
+            if (debug) console.log(`${dtag} load ${path} found ${!!source} modified ${modified}`);
+            if (!modified) {
+                if (source && force) source.reset_diags();
+                return source;
+            }
             code = util.file_read(path);
         }
         else if (source && source.code == code) {
             return source;
         }
+        else {
+            if (debug) console.log(`${dtag} load  ${path} found ${!!source} modified dirty`);
+        }
+
         if (source) {
             this.unbind_source(source);
             source.reset(code, mtime);
+            if (debug) console.log(`${dtag} reset '${path}' diag parser ${source.diags_parser.length}`);
         }
         else {
             source = new Source(path, code, mtime);
@@ -87,7 +96,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
     }
 
     parse(path: string, force?: boolean, code?: string): Root|undefined {
-        let source = this.load(path, code);
+        let source = this.load(path, force, code);
         if (!source) return undefined;
         if (source.root && !force) return source.root;
 
@@ -102,7 +111,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
         let millis = Date.now() - start_ms;
         console.log(`${dtag} '${source.path}' parsed in ${millis}ms`);
 
-        this.bind_source(source);
+        if (!path.endsWith(".vh")) this.bind_source(source);
         return source.root;
     }
 
@@ -158,7 +167,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
         let toks = new BufferedTokenStream(lexer, tokens);
         // let toks = new ChannelTokenStream(lexer, 0, locater.get_tokens());
         let parser = new VParser(toks as antlr4.TokenStream);
-        new PulErrorListener("pul-parser", source.diags_parser, parser);
+        new PulErrorListener(source.diags_parser, parser);
         let ast = parser.parse();
         let listener = new PulVListener(source, this);
         antlr4.ParseTreeWalker.DEFAULT.walk(listener, ast);
@@ -193,7 +202,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
     parse_check_for_include(inc_path: string) {
         let inc_source = this.load(inc_path);
         if (!inc_source || inc_source.valid) return;
-
+        if (debug) console.log(`${dtag} parse check for include '${inc_path}`);
         for (let [path, source] of Object.entries(this.sources)) {
             if (source.has_include(inc_path)) {
                 let root = this.parse(path, true);
@@ -255,18 +264,20 @@ export class PulParser implements SourceLoader, ModuleProvider {
             let path = `${source.path}|${inc.source.path}`;
             this.diag_map[path] = [];
         }
-        for (let diag of source.diags_lexer) this.diag_map[source.path].push(diag);
+        for (let diag of source.diags_lexer) {
+            this.diag_map[source.path].push(diag);
+        }
         for (let diag of source.diags_parser) {
             let path = source.path;
             if (diag.code !== undefined ) {
                 let inc_source = source.get_source(diag.code as number);
                 if (inc_source != source) path =`${source.path}|${inc_source.path}`;
-                // diag.source = `pul-parser(${source.path})`;
-                diag.code = undefined;
             }
             this.diag_map[path].push(diag);
         }
-        for (let diag of source.diags_linter) this.diag_map[source.path].push(diag);
+        for (let diag of source.diags_linter) {
+            this.diag_map[source.path].push(diag);
+        }
     }
 
     update_diagnostics() {
@@ -274,14 +285,16 @@ export class PulParser implements SourceLoader, ModuleProvider {
         let inc_diags_map: {[path:string]: {[key:string]: vscode.Diagnostic}} = {};
         for (let [key, diags] of Object.entries(this.diag_map)) {
             let i = key.indexOf('|');
-            if (i < 0) this.diags.set(vscode.Uri.file(key), diags);
+            if (i < 0) {
+                this.diags.set(vscode.Uri.file(key), diags);
+            }
             else {
                 let inc_path = key.substring(i + 1);
                 let inc_diags = inc_diags_map[inc_path];
                 if (!inc_diags) inc_diags_map[inc_path] = inc_diags = {};
                 for (let diag of diags) {
-                    let key = `${diag.range.start.line}:${diag.range.start.character}:${diag.message}`;
-                    inc_diags[key] = diag;
+                    let tip = `${diag.range.start.line}:${diag.range.start.character}:${diag.message}`;
+                    inc_diags[tip] = diag;
                 }
             }
         }

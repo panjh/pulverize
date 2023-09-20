@@ -6,12 +6,10 @@ let dtag = "[PulErrorListener]";
 
 export class PulErrorListener extends antlr4.ErrorListener<any> {
 
-    tag: string;
     diags: vscode.Diagnostic[];
 
-    constructor(tag: string, diags: vscode.Diagnostic[], parser?: antlr4.Recognizer<any>) {
+    constructor(diags: vscode.Diagnostic[], parser?: antlr4.Recognizer<any>) {
         super();
-        this.tag = tag;
         this.diags = diags;
         if (!parser) return;
         parser.removeErrorListeners();

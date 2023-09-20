@@ -18,21 +18,6 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
 
     provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SemanticTokens> {
         return this.get_semantic_tokens(document);
-        // let curr_time = Date.now();
-        // this.latest_time = curr_time;
-        // if (debug) console.log(`${dtag} invoke ${curr_time}`);
-        // return new Promise<vscode.SemanticTokens|undefined>((resolve, reject) => {
-        //     setTimeout(() => {
-        //         if (debug) console.log(`${dtag} execute ${curr_time} latest ${this.latest_time}`);
-        //         if (this.latest_time != curr_time) {
-        //             if (debug) console.log(`${dtag} canceled`);
-        //             reject();
-        //             return;
-        //         }
-
-        //         resolve(this.get_semantic_tokens(document));
-        //     }, 500);
-        // });
     }
 
     private get_semantic_tokens(document: vscode.TextDocument): vscode.SemanticTokens|undefined {
