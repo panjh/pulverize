@@ -157,7 +157,7 @@ export function get_symbol(doc: vscode.TextDocument, rng: vscode.Range): SymbolR
     }
     else if (prefix.endsWith('.')) {
         let m = /\b[\w\.]+$/.exec(prefix) as any;
-        if (m[0] == ".") return new SymbolResult(word, SymbolKind.FIELD);
+        if (!m || m[0] == ".") return new SymbolResult(word, SymbolKind.FIELD);
         return new SymbolResult(m[0] + word, SymbolKind.VARIABLE);
     }
     else {
