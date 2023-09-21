@@ -639,7 +639,7 @@ list_of_genvar_identifiers
 	;
 
 loop_generate_construct
-	: 'for' '(' genvar_initialization ';' genvar_expression ';' genvar_iteration ')' generate_block
+	: 'for' '(' genvar_initialization? ';' genvar_expression? ';' genvar_iteration? ')' generate_block
 	;
 
 genvar_initialization
@@ -837,7 +837,7 @@ loop_statement
 	: 'forever' statement
 	| 'repeat' '(' expression ')' statement
 	| 'while' '(' expression ')' statement
-	| 'for' '(' variable_assignment ';' expression ';' variable_assignment ')' statement
+	| 'for' '(' variable_assignment? ';' expression? ';' variable_assignment? ')' statement
 	;
 
 system_task_enable
