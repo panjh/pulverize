@@ -22,6 +22,7 @@ import { SemaTokens } from "./SemaTokens";
 import { Id } from "./entity/Id";
 import { PulLinter } from "./PulLinter";
 import { Block } from "./entity/Block";
+import { InstanceGroup } from "./entity/InstanceGroup";
 
 let debug = false;
 let dtag = "[PulParser]";
@@ -142,11 +143,12 @@ export class PulParser implements SourceLoader, ModuleProvider {
             }
         }
 
-        for (let id of ctx.references) {
-            let symbol = ctx.find_symbol(id.name, id.root_beg);
-            let rng = id.root_rng;
-            if (id.origin) {
-                let name = id.name;
+        for (let ref of ctx.references) {
+            if (!(ref instanceof Id)) continue;
+            let symbol = ctx.find_symbol(ref.name, ref.root_beg);
+            let rng = ref.root_rng;
+            if (ref.origin) {
+                let name = ref.name;
                 switch (symbol?.kind) {
                 case "tri":
                 case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
@@ -303,7 +305,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
         }
     }
 
-    find_references(entity: Entity): Id[] {
+    find_references(entity: Entity): Entity[] {
         let refs: Symbol[] = [];
         for (let module of Object.values(this.modules)) {
             this.find_references_in(module, entity, refs);
@@ -311,10 +313,14 @@ export class PulParser implements SourceLoader, ModuleProvider {
         return refs;
     }
 
-    private find_references_in(ctx: Context, entity: Entity, refs: Id[]): void {
-        for (let id of ctx.references) {
-            let symbol = ctx.find_symbol(id.name, id.root_beg);
-            if (symbol === entity) refs.push(id);
+    private find_references_in(ctx: Context, entity: Entity, refs: Entity[]): void {
+        for (let ref of ctx.references) {
+            if (ref instanceof InstanceGroup) {
+                if ((entity instanceof Module || entity instanceof InstanceGroup) && entity.name == ref.name) refs.push(ref);
+                continue;
+            }
+            let symbol = ctx.find_symbol(ref.name, ref.root_beg);
+            if (symbol === entity) refs.push(ref);
         }
         for (let child of ctx.childs) {
             this.find_references_in(child, entity, refs);

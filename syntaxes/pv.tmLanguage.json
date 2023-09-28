@@ -1,0 +1,81 @@
+{
+    "name": "PulVerilog",
+    "scopeName":"source.pulverilog",
+    "fileTypes": [ "pv", "pulv", "pulverilog" ],
+    "patterns": [
+        { "include": "#statements" }
+    ],
+
+    "repository": {
+        "comments": {
+            "patterns": [
+                { "name": "comment.block.verilog",                  "begin": "/\\*", "end": "\\*/" },
+                { "name": "comment.line.double-slash.verilog",      "match": "(//).*$\\n?" }
+            ]
+        },
+        "constants": {
+            "patterns": [
+                { "name": "constant.numeric.verilog",               "match": "(\\b\\d+)?'(s?[bB]\\s*[0-1xXzZ?][0-1_xXzZ?]*|s?[oO]\\s*[0-7xXzZ?][0-7_xXzZ?]*|s?[dD]\\s*[0-9xXzZ?][0-9_xXzZ?]*|s?[hH]\\s*[0-9a-fA-FxXzZ?][0-9a-fA-F_xXzZ?]*)((e|E)(\\+|-)?[0-9]+)?(?!'|\\w)" },
+                { "name": "constant.numeric.bit.verilog",           "match": "'[01xXzZ]" },
+                { "name": "constant.numeric.exp.verilog",           "match": "\\b((\\d[\\d_]*)(e|E)(\\+|-)?[0-9]+)\\b" },
+                { "name": "constant.numeric.decimal.verilog",       "match": "\\b(\\d[\\d_]*)\\b" },
+                { "name": "constant.numeric.time.verilog",          "match": "\\b(\\d+(fs|ps|ns|us|ms|s)?)\\b" }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                { "name": "operator.keyword.verilog",               "match": "(:=|=|<-|->|<>|\\|>|<\\|)" },
+                { "name": "operator.comparison.verilog",            "match": "(==|!=|<=|>=|<|>)" },
+                { "name": "operator.arithmetic.verilog",            "match": "(\\-|\\+|\\*|\\/|%)" },
+                { "name": "operator.logical.verilog",               "match": "(!|&&|\\|\\||\\bor\\b)" },
+                { "name": "operator.bitwise.verilog",               "match": "(&|\\||\\^|~|{|'{|}|<<|>>|\\?|:)" },
+                { "name": "operator.other.verilog",                 "match": "(#|@)" }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                { "name": "string.quoted.double.verilog",           "begin": "\"", "end": "\"" }
+            ]
+        },
+        "identifiers": {
+            "patterns": [
+                { "name": "variable.verilog",                       "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b" }
+            ]
+        },
+        "bases": {
+            "patterns": [
+                { "include": "#comments" },
+                { "include": "#constants" },
+                { "include": "#operators" },
+                { "include": "#strings" },
+                { "include": "#identifiers" }
+            ]
+        },
+
+        "statements": {
+            "patterns": [
+                { "name": "keyword.ctype.verilog",          "match": "\\b(int|str|bit)\\b" },
+                { "name": "keyword.type.verilog",           "match": "\\b(wir|reg|bit)\\b" },
+                { "include": "#block" },
+                { "include": "#keywords" },
+                { "include": "#bases" }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                { "name": "keyword.control.verilog",        "match": "\\b(module|parameter|port|implement|simulate|if|else|case|_|serial|clock|pos|neg|edge|type|packed|auto)\\b" }
+            ]
+        },
+        "block": {
+            "patterns": [
+                {
+                    "name": "scope.block.verilog",          "begin": "\\{", "end": "\\}",
+                    "patterns": [
+                        { "include": "#statements" }
+                    ]
+                }
+            ]
+        }
+    }
+
+}

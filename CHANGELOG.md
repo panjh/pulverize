@@ -32,3 +32,6 @@
 
 ### 0.1.7
 * hierarchical identifier hint and click
+
+### 0.1.8
+* find reference of module

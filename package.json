@@ -2,7 +2,7 @@
     "name": "pulverize",
     "displayName": "Pulverize Verilog Support",
     "description": "Verilog Language Support for FPGA or IC Develop",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "publisher": "edison",
     "icon": "icon.png",
 	"repository": {
@@ -63,6 +63,18 @@
                 "configuration": "./config/v.configuration.json"
             },
             {
+                "id": "pulverilog",
+                "aliases": [
+                    "PulVerilog"
+                ],
+                "extensions": [
+                    ".pv",
+                    ".pulv",
+                    ".pulverilog"
+                ],
+                "configuration": "./config/pv.configuration.json"
+            },
+            {
                 "id": "punk",
                 "aliases": [
                     "punk",
@@ -79,6 +91,11 @@
                 "language": "verilog",
                 "scopeName": "source.verilog",
                 "path": "./syntaxes/v.tmLanguage.json"
+            },
+            {
+                "language": "pulverilog",
+                "scopeName": "source.pulverilog",
+                "path": "./syntaxes/pv.tmLanguage.json"
             },
             {
                 "language": "punk",

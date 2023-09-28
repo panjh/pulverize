@@ -5,6 +5,7 @@ import { InstanceGroup } from "./entity/InstanceGroup";
 import { PulParser } from "./PulParser";
 import { Instance } from "./entity/Instance";
 import { PulConfig } from "./PulConfig";
+import { Id } from "./entity/Id";
 
 let debug = false;
 let dtag = "[PulLinter]";
@@ -68,26 +69,27 @@ export class PulLinter {
             }
         }
 
-        for (let id of ctx.references) {
-            let symbol = ctx.find_symbol(id.name, id.root_beg);
-            let rng = id.root_rng;
+        for (let ref of ctx.references) {
+            if (!(ref instanceof Id)) continue;
+            let symbol = ctx.find_symbol(ref.name, ref.root_beg);
+            let rng = ref.root_rng;
             if (!symbol) {
-                let code = id.name;
-                if (id.port_name && id.port_modu) {
-                    let modu = PulParser.inst().get_module(id.port_modu);
-                    let port = modu?.get_port(id.port_name);
+                let code = ref.name;
+                if (ref instanceof Id && ref.port_name && ref.port_modu) {
+                    let modu = PulParser.inst().get_module(ref.port_modu);
+                    let port = modu?.get_port(ref.port_name);
                     if (port) code += `,${port.width}`;
                 }
                 if (PulConfig.inst().lint["reference-not-found"] !== false) {
-                    let diag = new vscode.Diagnostic(rng, `reference '${id.name}' not found`, vscode.DiagnosticSeverity.Warning);
+                    let diag = new vscode.Diagnostic(rng, `reference '${ref.name}' not found`, vscode.DiagnosticSeverity.Warning);
                     diag.source = "pul-linter[reference-not-found]";
                     diag.code = code;
                     source.diags_linter.push(diag);
                 }
             }
-            else if (!symbol.scope_contains(id.root_beg)) {
+            else if (!symbol.scope_contains(ref.root_beg)) {
                 if (PulConfig.inst().lint["reference-ahead-declaration"] !== false) {
-                    let diag = new vscode.Diagnostic(rng, `reference '${id.name}' ahead of declaration`, vscode.DiagnosticSeverity.Warning);
+                    let diag = new vscode.Diagnostic(rng, `reference '${ref.name}' ahead of declaration`, vscode.DiagnosticSeverity.Warning);
                     diag.source = "pul-linter[reference-ahead-declaration]";
                     source.diags_linter.push(diag);
                 }

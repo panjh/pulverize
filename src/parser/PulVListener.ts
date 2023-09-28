@@ -146,14 +146,19 @@ export class PulVListener extends VParserListener {
         }
     }
 
-    private add_ref(ctx: v.IdentifierContext|undefined): Id|undefined {
+    private add_modu_ref(modu: InstanceGroup) : void {
+        this.curr!.references.push(modu);
+        if (debug) console.log(`${dtag}   add_modu_ref(${modu.name}) to ctx '${this.curr!.name}'`);
+    }
+
+    private add_id_ref(ctx: v.IdentifierContext|undefined): Id|undefined {
         if (!ctx) return undefined;
         let name = ctx;
         let id = new Id(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         id.port_modu = this.curr_port_modu;
         id.port_name = this.curr_port_name;
         this.curr!.references.push(id);
-        if (debug) console.log(`${dtag}   add_ref(${name}) to ctx '${this.curr!.name}'`);
+        if (debug) console.log(`${dtag}   add_id_ref(${name}) to ctx '${this.curr!.name}'`);
         return id;
     }
 
@@ -213,6 +218,7 @@ export class PulVListener extends VParserListener {
         if (ctx.exception) return;
         let name = ctx.module_identifier();
         let group = new InstanceGroup(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
+        this.add_modu_ref(group);
         this.push_context(group);
         if (debug) console.log(`${dtag} enterModule_instantiation(${name})`);
     }
@@ -402,14 +408,14 @@ export class PulVListener extends VParserListener {
             let names: string[] = [];
             for (let name of ctx.hierarchical_identifier().identifier_list()) {
                 names.push(name.getText());
-                let id = this.add_ref(name);
+                let id = this.add_id_ref(name);
                 if (!id) continue;
                 id.name = names.join(".");
             }
         }
         else if (ctx.function_call()) {
             let id = ctx.function_call().hierarchical_function_identifier().hierarchical_identifier().identifier(0);
-            this.add_ref(id);
+            this.add_id_ref(id);
         }
         if (debug) console.log(`${dtag} enterPrimary()`);
     }
@@ -419,35 +425,35 @@ export class PulVListener extends VParserListener {
         let id = ctx.parameter_identifier()?.identifier();
         if (!id) id = ctx.specparam_identifier()?.identifier();
         if (!id) id = ctx.constant_function_call()?.function_identifier().identifier();
-        this.add_ref(id);
+        this.add_id_ref(id);
         if (debug) console.log(`${dtag} enterConstant_primary()`);
     }
 
     enterVariable_lvalue(ctx: v.Variable_lvalueContext): void {
         if (ctx.exception) return;
         let id = ctx.hierarchical_variable_identifier()?.hierarchical_identifier().identifier(0);
-        this.add_ref(id);
+        this.add_id_ref(id);
         if (debug) console.log(`${dtag} enterVariable_lvalue()`);
     }
 
     enterNet_lvalue(ctx: v.Net_lvalueContext): void {
         if (ctx.exception) return;
         let id = ctx.hierarchical_net_identifier()?.hierarchical_identifier().identifier(0);
-        this.add_ref(id);
+        this.add_id_ref(id);
         if (debug) console.log(`${dtag} enterNet_lvalue()`);
     }
 
     enterGenvar_initialization(ctx: v.Genvar_initializationContext): void {
         if (ctx.exception) return;
         let id = ctx.genvar_identifier().identifier();
-        this.add_ref(id);
+        this.add_id_ref(id);
         if (debug) console.log(`${dtag} enterGenvar_initialization()`);
     }
 
     enterGenvar_iteration(ctx: v.Genvar_iterationContext): void {
         if (ctx.exception) return;
         let id = ctx.genvar_identifier().identifier();
-        this.add_ref(id);
+        this.add_id_ref(id);
         if (debug) console.log(`${dtag} enterGenvar_iteration()`);
     }
 

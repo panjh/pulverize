@@ -10,7 +10,7 @@ export class Context extends Entity {
     parent?: Context;
     childs: Context[];
     symbols: {[key: string]: Entity[]};
-    references: Id[];
+    references: Entity[];
 
     constructor(name: antlr4.ParserRuleContext|string, kind: string, ctx: antlr4.ParserRuleContext, source: Source, parent?: Context) {
         super(name, kind, ctx, source);

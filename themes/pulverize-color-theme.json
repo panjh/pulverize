@@ -257,21 +257,23 @@
         { "scope": [ "constant.character", "constant.other.option" ],                   "settings": { "foreground": "#569cd6" } },
         { "scope": "constant.character.escape",             "settings": { "foreground": "#d7ba7d" } },
         { "scope": "entity.name.label",                     "settings": { "foreground": "#C8C8C8" } },
-		/* verilog */
-		{ "scope": "comment.disable.verilog",               "settings": { "foreground": "#999" } },
+        /* verilog */
+        { "scope": "comment.disable.verilog",               "settings": { "foreground": "#999" } },
         { "scope": "entity.name.type.param.verilog",        "settings": { "foreground": "#093" } },
         { "scope": "variable.reg.verilog",                  "settings": { "foreground": "#9cf" } },
         { "scope": "variable.css.logic.verilog",            "settings": { "foreground": "#6cc" } },
         { "scope": "entity.name.tag.wire.verilog",          "settings": { "foreground": "#69c" } },
         { "scope": "entity.name.tag.css.sim.verilog",       "settings": { "foreground": "#9c6" } },
-		/* punk */
-		{ "scope": "variable.reg.punk",                     "settings": { "foreground": "#56c" } },
-		{ "scope": "entity.name.tag.mem.punk",              "settings": { "foreground": "#5c6" } },
-		{ "scope": "constant.regexp.define.punk",           "settings": { "foreground": "#699", "fontStyle": "italic" } },
-		{ "scope": "string.regexp.var.tpl.punk",            "settings": { "foreground": "#c6c" } },
-		{ "scope": "keyword.operator.stmt.tpl.punk",        "settings": { "foreground": "#86c" } },
-		{ "scope": "entity.name.label.punk",                "settings": { "foreground": "#8cc", "fontStyle": "italic" } },
-		{ "scope": "entity.name.type.param.punk",           "settings": { "foreground": "#083", "fontStyle": "italic" } },
+        { "scope": "operator",                              "settings": { "foreground": "#cc6" } },
+        { "scope": "operator.keyword",                      "settings": { "foreground": "#86c" } },
+        /* punk */
+        { "scope": "variable.reg.punk",                     "settings": { "foreground": "#56c" } },
+        { "scope": "entity.name.tag.mem.punk",              "settings": { "foreground": "#5c6" } },
+        { "scope": "constant.regexp.define.punk",           "settings": { "foreground": "#699", "fontStyle": "italic" } },
+        { "scope": "string.regexp.var.tpl.punk",            "settings": { "foreground": "#c6c" } },
+        { "scope": "keyword.operator.stmt.tpl.punk",        "settings": { "foreground": "#86c" } },
+        { "scope": "entity.name.label.punk",                "settings": { "foreground": "#8cc", "fontStyle": "italic" } },
+        { "scope": "entity.name.type.param.punk",           "settings": { "foreground": "#083", "fontStyle": "italic" } },
 	],
 	"semanticHighlighting": true
 }
