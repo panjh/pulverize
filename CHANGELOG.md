@@ -35,3 +35,7 @@
 
 ### 0.1.8
 * find reference of module
+
+### 0.1.9
+* variable completion
+* verilog snippets supported

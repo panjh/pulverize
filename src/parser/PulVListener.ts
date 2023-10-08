@@ -248,6 +248,7 @@ export class PulVListener extends VParserListener {
     enterNamed_port_connection(ctx: v.Named_port_connectionContext): void {
         if (ctx.exception) return;
         if (!ctx.port_identifier()) return;
+        if (!(this.curr! instanceof Instance)) return;
         let name = ctx.port_identifier();
         let inst = this.curr! as Instance;
         let modu = inst.parent as InstanceGroup;

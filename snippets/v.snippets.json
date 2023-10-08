@@ -1,0 +1,233 @@
+{
+    "module": {
+        "prefix": "module",
+        "body": [
+            "module $1 (",
+            "    $2",
+            "    // basic",
+            "    input   wire        clk_i,",
+            "    input   wire        rst_ni",
+            ");",
+            "$3",
+            "endmodule"
+        ]
+    },
+
+    "initial": {
+        "prefix": "initial",
+        "body": [
+            "initial begin",
+            "    $1",
+            "end"
+        ]
+    },
+
+    "always": {
+        "prefix": "always",
+        "body": [
+            "always @(*) begin",
+            "    $1",
+            "end"
+        ]
+    },
+
+    "always clock": {
+    	"prefix": "alwaysclk",
+    	"body": [
+    		"always @(posedge ${1:clk_i} ${2:or negedge rst_ni}) begin",
+            "    if (!rst_ni) begin",
+            "        $3",
+            "    end",
+            "    else begin",
+            "        $4",
+            "    end",
+            "end"
+    	]
+    },
+
+    "input": {
+    	"prefix": "input",
+    	"body": [
+    		"input   ${1:wire}        $2"
+    	]
+    },
+
+    "output": {
+    	"prefix": "output",
+    	"body": [
+    		"output  ${1:wire}        $2"
+    	]
+    },
+
+    "inout": {
+    	"prefix": "inout",
+    	"body": [
+    		"inout   ${1:wire}        $2"
+    	]
+    },
+
+    "wire": {
+        "prefix": "wire",
+        "body": [
+            "wire$1        $2"
+        ]
+    },
+
+    "reg": {
+        "prefix": "reg",
+        "body": [
+            "reg $1        $2"
+        ]
+    },
+
+    "logic": {
+        "prefix": "logic",
+        "body": [
+            "logic$1       $2"
+        ]
+    },
+
+    "assign": {
+        "prefix": "assign",
+        "body": [
+            "assign      $1 = $2"
+        ]
+    },
+
+    "localparam": {
+        "prefix": "localparam",
+        "body": [
+            "localparam  $1 = $2"
+        ]
+    },
+
+    "posedge": {
+        "prefix": "posedge",
+        "body": [
+            "posedge"
+        ]
+    },
+
+    "negedge": {
+        "prefix": "negedge",
+        "body": [
+            "negedge"
+        ]
+    },
+
+    "beginend": {
+        "prefix": "beginend",
+        "body": [
+            "begin",
+            "    $1",
+            "end"
+        ]
+    },
+
+    "case": {
+        "prefix": "case",
+        "body": [
+            "case (${1:state})",
+            "${2:IDLE:;}",
+            "endcase"
+        ]
+    },
+
+    "if": {
+        "prefix": "if",
+        "body": [
+            "if ($1) $2"
+        ]
+    },
+
+    "if begin": {
+        "prefix": "ifbeg",
+        "body": [
+            "if ($1) begin",
+            "    $2",
+            "end"
+        ]
+    },
+
+    "else begin": {
+        "prefix": "elsebeg",
+        "body": [
+            "else begin",
+            "    $1",
+            "end"
+        ]
+    },
+
+    "else if begin": {
+        "prefix": "elifbeg",
+        "body": [
+            "else if ($1) begin",
+            "    $2",
+            "end"
+        ]
+    },
+
+    "for": {
+		"prefix": "for",
+		"body": [
+			"for ($1 = $2; $3; $4) begin",
+			"    $5",
+			"end"
+		]
+	},
+
+    "forever": {
+		"prefix": "forever",
+		"body": [
+			"forever begin",
+			"    $1",
+			"end"
+		]
+	},
+
+    "while": {
+		"prefix": "while",
+		"body": [
+			"while ($1) begin",
+			"    $2",
+			"end"
+		]
+	},
+
+    "generate": {
+		"prefix": "generate",
+		"body": [
+			"generate $1",
+			"endgenerate"
+		]
+	},
+
+    "genvar": {
+        "prefix": "genvar",
+        "body": [
+            "genvar\t\t$1"
+        ]
+    },
+
+    "function": {
+		"prefix": "function",
+		"body": [
+			"function$1 $2;",
+            "begin",
+			"    $3;",
+            "end",
+			"endfunction"
+		]
+	},
+
+    "task": {
+		"prefix":"task",
+		"body": [
+			"task $1($2);",
+            "begin"
+			"    $3",
+			"endtask"
+		]
+	},
+
+}

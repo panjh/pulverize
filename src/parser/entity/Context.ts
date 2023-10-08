@@ -22,7 +22,9 @@ export class Context extends Entity {
 
     locate(pos: vscode.Position): Context {
         for (let child of this.childs) {
-            if (child.rng.contains(pos)) return child.locate(pos);
+            if (child.root_rng.contains(pos)) {
+                return child.locate(pos);
+            }
         }
         return this;
     }

@@ -19,10 +19,12 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         let source = root.source as Source;
         let ctx = root.locate(position);
         if (debug) console.log(`${dtag} pos ${position.line}:${position.character} char '${ch}' ctx '${ctx.name}'`);
-        if (ch == '`') return this.macro_items(source.get_macros(pos));
-        else if (ch == '$') return this.variable_items(ctx.get_symbols(pos), position);
-        else if (ch == '.' && ctx instanceof Instance) return this.port_items(ctx as Instance);
-        else return null;
+
+        let items: vscode.CompletionItem[] = [];
+        if (ch === undefined) items = this.variable_items(ctx.get_symbols(pos), position);
+        else if (ch == '`') items = this.macro_items(source.get_macros(pos));
+        else if (ch == '.' && ctx instanceof Instance) items = this.port_items(ctx as Instance);
+        return (items.length ? items : null);
     }
 
     private macro_items(macros: Macro[]): vscode.CompletionItem[] {
@@ -41,17 +43,17 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             let item = new vscode.CompletionItem(symbol.name, vscode.CompletionItemKind.Variable);
             item.documentation = new vscode.MarkdownString();
             item.documentation.appendCodeblock(symbol.to_string(), "verilog");
-            let tri_rng = new vscode.Range(position.line, position.character-1, position.line, position.character);
-            item.additionalTextEdits = [vscode.TextEdit.delete(tri_rng)];
+            // let tri_rng = new vscode.Range(position.line, position.character-1, position.line, position.character);
+            // item.additionalTextEdits = [vscode.TextEdit.delete(tri_rng)];
             items.push(item);
         }
         return items;
     }
 
-    private port_items(inst: Instance): vscode.CompletionItem[]|null {
+    private port_items(inst: Instance): vscode.CompletionItem[] {
         let modu_name = inst.parent!.name;
         let modu = PulParser.inst().get_module(modu_name);
-        if (!modu) return null;
+        if (!modu) return [];
         let items: vscode.CompletionItem[] = [];
         let missing_ports: string[] = [];
         for (let i = 0; i < modu.ports.length; ++i) {

@@ -5,8 +5,8 @@ import { Source } from '../parser/entity/Source';
 import { Instance } from '../parser/entity/Instance';
 import { InstanceGroup } from '../parser/entity/InstanceGroup';
 
-let debug = false;
-let dtag = "[VHoverProvider]";
+let debug = true;
+let dtag = "[HoverProvider]";
 
 export class HoverProvider implements vscode.HoverProvider {
 

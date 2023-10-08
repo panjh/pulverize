@@ -22,7 +22,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.languages.registerHoverProvider(lang, new HoverProvider()));
     if (!debug) {
         context.subscriptions.push(vscode.languages.registerDefinitionProvider(lang, new DefinitionProvider()));
-        context.subscriptions.push(vscode.languages.registerCompletionItemProvider(lang, new CompletionItemProvider(), '.', '`', '$'));
+        context.subscriptions.push(vscode.languages.registerCompletionItemProvider(lang, new CompletionItemProvider(), '.', '`'));
         context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(lang, new DocumentSymbolProvider()));
         context.subscriptions.push(vscode.languages.registerCodeActionsProvider(lang, new CodeActionProvider()));
         context.subscriptions.push(vscode.languages.registerReferenceProvider(lang, new ReferenceProvider()));
