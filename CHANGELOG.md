@@ -39,3 +39,6 @@
 ### 0.1.9
 * variable completion
 * verilog snippets supported
+
+### 0.1.10
+* Connect all missing ports and Hang all missing ports

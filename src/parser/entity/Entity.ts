@@ -19,6 +19,7 @@ export class Entity {
     root_beg: number;
     root_end: number;
     root_rng: vscode.Range;
+    root_name_rng?: vscode.Range;
 
     scope_beg: number;
     scope_end: number;
@@ -29,6 +30,7 @@ export class Entity {
         if (name instanceof antlr4.ParserRuleContext) {
             this.name = name.getText();
             this.name_rng = util.token_range(name.start, name.stop!);
+            this.root_name_rng = (name.start as RefToken).root_rng || this.name_rng;
         }
         else {
             this.name = name as string;

@@ -5,6 +5,7 @@ import { Source } from '../parser/entity/Source';
 import { Instance } from '../parser/entity/Instance';
 import { Macro } from '../parser/entity/Macro';
 import { Entity } from '../parser/entity/Entity';
+import { Port } from '../parser/entity/Port';
 
 let debug = false;
 let dtag = "[CompletionItemProvider]";
@@ -55,7 +56,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         let modu = PulParser.inst().get_module(modu_name);
         if (!modu) return [];
         let items: vscode.CompletionItem[] = [];
-        let missing_ports: string[] = [];
+        let missing_ports: Port[] = [];
         for (let i = 0; i < modu.ports.length; ++i) {
             let port = modu.ports[i];
             let item = new vscode.CompletionItem(port.name, vscode.CompletionItemKind.Variable);
@@ -65,19 +66,26 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             item.sortText = `5_miss_${util.zero_fill(i, 6)}`;
             if (inst.get_connector(port.name)) {
                 item.kind = vscode.CompletionItemKind.Constant;
-                item.sortText = `7_found_${util.zero_fill(i, 6)}`;
+                item.sortText = `9_found_${util.zero_fill(i, 6)}`;
             }
             else {
-                missing_ports.push(`.${port.name}(${port.name}),`);
+                missing_ports.push(port);
             }
             items.push(item);
         }
         if (missing_ports.length > 0) {
-            let item = new vscode.CompletionItem("All missing ports...", vscode.CompletionItemKind.Snippet);
-            missing_ports[0] = missing_ports[0].substring(1);
-            item.insertText = missing_ports.join("\n");
-            item.sortText = `6_allmissing`;
-            items.push(item);
+            {
+                let item = new vscode.CompletionItem("Connect all missing ports...", vscode.CompletionItemKind.Snippet);
+                item.insertText = missing_ports.map((port, i) => `${i?'.':''}${port.name}(${port.name})`).join(",\n");
+                item.sortText = `6_all_connect`;
+                items.push(item);
+            }
+            {
+                let item = new vscode.CompletionItem("Hang all missing ports...", vscode.CompletionItemKind.Snippet);
+                item.insertText = missing_ports.map((port, i) => `${i?'.':''}${port.name}()`).join(",\n");
+                item.sortText = `7_all_hang`;
+                items.push(item);
+            }
         }
         return items;
     }
