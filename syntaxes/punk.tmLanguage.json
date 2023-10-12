@@ -58,7 +58,7 @@
             "name": "entity.name.tag.mem.punk"
         },
         "keyword": {
-            "match": "\\b(mov|to|from|shift|keep|add|sub|shr|shl|and|or|xor|not|cmp|jmp|jeq|jne|jlt|jle|jgt|jge|if|wait|trigger|high|low|rise|fall|abs|rel|ticks|delay|data|read|write|fetch|frame|hmask|vmask|rev|exit|print|load|store|otp|id|rewind|home|break|slide|heater|otd|on|off|tempcal|region|zone|tempctrl|global|occl)\\b",
+            "match": "\\b(mov|to|from|shift|keep|add|sub|shr|shl|and|or|xor|not|cmp|jmp|jeq|jne|jlt|jle|jgt|jge|if|wait|trigger|high|low|rise|fall|abs|rel|ticks|delay|data|read|write|fetch|frame|hmask|vmask|rev|exit|print|load|store|otp|id|rewind|home|break|slide|heater|otd|outsel|tempcal|region|zone|tempctrl|global|occl)\\b",
             "name": "keyword"
         },
         "keyword.macro": {

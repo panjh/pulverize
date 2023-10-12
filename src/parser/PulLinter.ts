@@ -35,21 +35,23 @@ export class PulLinter {
 
         let LINT_module_not_found = (PulConfig.inst().lint["module-not-found"] !== false);
         let LINT_illegal_port = (PulConfig.inst().lint["illegal-port"] !== false);
-        let LINT_width_missmatch = (PulConfig.inst().lint["width-missmatch"] !== false);
+        let LINT_width_mismatch = (PulConfig.inst().lint["width-mismatch"] !== false);
         let LINT_missing_port = (PulConfig.inst().lint["missing-port"] !== false);
         let LINT_reference_not_found = (PulConfig.inst().lint["reference-not-found"] !== false);
         let LINT_reference_ahead_declaration = (PulConfig.inst().lint["reference-ahead-declaration"] !== false);
+        let LINT_variable_redefine = (PulConfig.inst().lint["variable-redefine"] !== false);
 
         if (ctx instanceof InstanceGroup) {
             let modu = ctx as InstanceGroup;
             if (LINT_module_not_found) this.check_module_not_found(modu, source);
             if (LINT_illegal_port) this.check_illegal_port(modu, source);
-            if (LINT_width_missmatch) this.check_width_missmatch(modu, source);
+            if (LINT_width_mismatch) this.check_width_mismatch(modu, source);
             if (LINT_missing_port) this.check_missing_port(modu, source);
         }
 
         if (LINT_reference_not_found) this.check_reference_not_found(ctx, source);
         if (LINT_reference_ahead_declaration) this.check_reference_ahead_declaration(ctx, source);
+        if (LINT_variable_redefine) this.check_variable_redefine(ctx, source);
 
         for (let child of ctx.childs) {
             this.check(source, child);
@@ -100,7 +102,7 @@ export class PulLinter {
         }
     }
 
-    private check_width_missmatch(modu: InstanceGroup, source: Source): void {
+    private check_width_mismatch(modu: InstanceGroup, source: Source): void {
         let module = PulParser.inst().get_module(modu.name);
         if (!module) return;
         for (let child of modu.childs) {
@@ -111,7 +113,7 @@ export class PulLinter {
                 if (conn.width_value && port.width_symbol) {
                     if (conn.width_value < port.width_symbol) {
                         let diag = new vscode.Diagnostic(conn.root_rng, `value width (${conn.width_value}) < port '${modu.name}.${conn.name}' (${port.width_symbol})`, vscode.DiagnosticSeverity.Warning);
-                        diag.source = "pul-linter[width-missmatch]";
+                        diag.source = "pul-linter[width-mismatch]";
                         source.diags_linter.push(diag);
                    }
                 }
@@ -164,6 +166,18 @@ export class PulLinter {
             if (!symbol.scope_contains(ref.root_beg)) {
                 let diag = new vscode.Diagnostic(rng, `reference '${ref.name}' ahead of declaration`, vscode.DiagnosticSeverity.Warning);
                 diag.source = "pul-linter[reference-ahead-declaration]";
+                source.diags_linter.push(diag);
+            }
+        }
+    }
+
+    private check_variable_redefine(ctx: Context, source: Source): void {
+        for (let symbols of Object.values(ctx.symbols)) {
+            if (symbols.length <= 1) continue;
+            for (let i = 0; i < symbols.length; ++i) {
+                let symbol = symbols[i];
+                let diag = new vscode.Diagnostic(symbol.root_rng, `variable '${symbol.name}' redefined`, vscode.DiagnosticSeverity.Warning);
+                diag.source = "pul-linter[variable-redefined]";
                 source.diags_linter.push(diag);
             }
         }

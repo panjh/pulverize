@@ -286,7 +286,7 @@ export class PulVListener extends VParserListener {
     }
 
     enterFunction_declaration(ctx: v.Function_declarationContext): void {
-        if (ctx.exception) return;
+        if (ctx.exception || ctx.EXPORT()) return;
         let name = ctx.function_identifier();
         let func = new Func(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         func.width_symbol = this.width_func(ctx.function_range_or_type());
@@ -296,13 +296,13 @@ export class PulVListener extends VParserListener {
     }
 
     exitFunction_declaration(ctx: v.Function_declarationContext): void {
-        if (ctx.exception) return;
+        if (ctx.exception || ctx.EXPORT()) return;
         this.pop_context();
         if (debug) console.log(`${dtag} exitFunction_declaration()`);
     }
 
     enterTask_declaration(ctx: v.Task_declarationContext): void {
-        if (ctx.exception) return;
+        if (ctx.exception || ctx.EXPORT()) return;
         let name = ctx.task_identifier();
         let task = new Task(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
         this.curr!.add_symbol(task);
@@ -311,7 +311,7 @@ export class PulVListener extends VParserListener {
     }
 
     exitTask_declaration(ctx: v.Task_declarationContext): void {
-        if (ctx.exception) return;
+        if (ctx.exception || ctx.EXPORT()) return;
         this.pop_context();
         if (debug) console.log(`${dtag} exitTask_declaration()`);
     }

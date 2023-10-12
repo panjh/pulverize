@@ -24,7 +24,7 @@
 ### 0.1.6
 * lint: module-not-found
 * lint: illegal-port
-* lint: width-missmatch
+* lint: width-mismatch
 * lint: reference-not-found
 * lint: refreence-ahead-declaration
 * lint: include-not-found
@@ -42,3 +42,4 @@
 
 ### 0.1.10
 * Connect all missing ports and Hang all missing ports
+* lint: variable-redefine

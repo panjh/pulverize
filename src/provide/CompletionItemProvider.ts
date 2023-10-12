@@ -62,7 +62,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             let item = new vscode.CompletionItem(port.name, vscode.CompletionItemKind.Variable);
             item.documentation = new vscode.MarkdownString();
             item.documentation.appendCodeblock(port.to_string(), "verilog");
-            item.insertText = new vscode.SnippetString(`${port.name}(\${1:${port.name}}),`);
+            item.insertText = new vscode.SnippetString(`${port.name}(\${1:${port.name}})`);
             item.sortText = `5_miss_${util.zero_fill(i, 6)}`;
             if (inst.get_connector(port.name)) {
                 item.kind = vscode.CompletionItemKind.Constant;
