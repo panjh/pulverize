@@ -9,7 +9,7 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
 
     latest_time: number = 0;
     types = ['macro', 'variable'];
-    modifiers = ['false', 'reg', 'wire', 'logic', 'param', 'sim'];
+    modifiers = ['false', 'reg', 'wire', 'logic', 'param', 'sim', 'inst'];
     legend = new vscode.SemanticTokensLegend(this.types, this.modifiers);
 
     get_legend(): vscode.SemanticTokensLegend {
@@ -35,6 +35,7 @@ export class SemanticTokensProvider implements vscode.DocumentSemanticTokensProv
             case 'logic': builder.push(st.rng, 'variable', ['logic']); break;
             case 'param': builder.push(st.rng, 'variable', ['param']); break;
             case 'sim': builder.push(st.rng, 'variable', ['sim']); break;
+            case 'inst': builder.push(st.rng, 'variable', ['inst']); break;
             }
         }
         return builder.build();

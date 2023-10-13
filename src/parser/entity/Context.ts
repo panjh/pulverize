@@ -40,6 +40,7 @@ export class Context extends Entity {
 
     find_symbol(name: string, pos?: number, hier?: boolean): Entity|undefined {
         if (hier === undefined) hier = false;
+        if (name == "") return undefined;
         let self_name = name;
         let child_name: string|undefined;
         let p = name.indexOf(".");
@@ -65,11 +66,11 @@ export class Context extends Entity {
         return this.parent.find_symbol(name, pos, hier);
     }
 
-    get_symbols(pos: number, syms?: Entity[]): Entity[] {
+    get_symbols(pos?: number, syms?: Entity[]): Entity[] {
         if (syms === undefined) syms = [];
         for (let symbols of Object.values(this.symbols)) {
             for (let symbol of symbols) {
-                if (symbol.scope_contains(pos)) {
+                if (!pos || symbol.scope_contains(pos)) {
                     syms.push(symbol);
                     break;
                 }

@@ -151,7 +151,7 @@ export class PulVListener extends VParserListener {
         if (debug) console.log(`${dtag}   add_modu_ref(${modu.name}) to ctx '${this.curr!.name}'`);
     }
 
-    private add_id_ref(ctx: v.IdentifierContext|undefined): Id|undefined {
+    private add_id_ref(ctx: v.IdentifierContext|v.Hierarchical_identifierContext|undefined): Id|undefined {
         if (!ctx) return undefined;
         let name = ctx;
         let id = new Id(name, ctx, this.source.get_source(ctx.start.tokenIndex), this.curr!);
@@ -405,19 +405,8 @@ export class PulVListener extends VParserListener {
      */
     enterPrimary(ctx: v.PrimaryContext): void {
         if (ctx.exception) return;
-        if (ctx.hierarchical_identifier()) {
-            let names: string[] = [];
-            for (let name of ctx.hierarchical_identifier().identifier_list()) {
-                names.push(name.getText());
-                let id = this.add_id_ref(name);
-                if (!id) continue;
-                id.name = names.join(".");
-            }
-        }
-        else if (ctx.function_call()) {
-            let id = ctx.function_call().hierarchical_function_identifier().hierarchical_identifier().identifier(0);
-            this.add_id_ref(id);
-        }
+        if (ctx.hierarchical_identifier()) this.add_id_ref(ctx.hierarchical_identifier());
+        else if (ctx.function_call()) this.add_id_ref(ctx.function_call().hierarchical_function_identifier().hierarchical_identifier());
         if (debug) console.log(`${dtag} enterPrimary()`);
     }
 
@@ -432,29 +421,25 @@ export class PulVListener extends VParserListener {
 
     enterVariable_lvalue(ctx: v.Variable_lvalueContext): void {
         if (ctx.exception) return;
-        let id = ctx.hierarchical_variable_identifier()?.hierarchical_identifier().identifier(0);
-        this.add_id_ref(id);
+        this.add_id_ref(ctx.hierarchical_variable_identifier()?.hierarchical_identifier());
         if (debug) console.log(`${dtag} enterVariable_lvalue()`);
     }
 
     enterNet_lvalue(ctx: v.Net_lvalueContext): void {
         if (ctx.exception) return;
-        let id = ctx.hierarchical_net_identifier()?.hierarchical_identifier().identifier(0);
-        this.add_id_ref(id);
+        this.add_id_ref(ctx.hierarchical_net_identifier()?.hierarchical_identifier());
         if (debug) console.log(`${dtag} enterNet_lvalue()`);
     }
 
     enterGenvar_initialization(ctx: v.Genvar_initializationContext): void {
         if (ctx.exception) return;
-        let id = ctx.genvar_identifier().identifier();
-        this.add_id_ref(id);
+        this.add_id_ref(ctx.genvar_identifier().identifier());
         if (debug) console.log(`${dtag} enterGenvar_initialization()`);
     }
 
     enterGenvar_iteration(ctx: v.Genvar_iterationContext): void {
         if (ctx.exception) return;
-        let id = ctx.genvar_identifier().identifier();
-        this.add_id_ref(id);
+        this.add_id_ref(ctx.genvar_identifier().identifier());
         if (debug) console.log(`${dtag} enterGenvar_iteration()`);
     }
 

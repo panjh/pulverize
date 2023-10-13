@@ -2,8 +2,9 @@
     "name": "pulverize",
     "displayName": "Pulverize Verilog Support",
     "description": "Verilog Language Support for FPGA or IC Develop",
-    "version": "0.1.10",
-    "publisher": "edison",
+    "version": "0.2.0",
+    "publisher": "panjh",
+    "homepage": "https://github.com/panjh/pulverize",
     "icon": "icon.png",
 	"repository": {
 		"type": "git",
@@ -102,7 +103,8 @@
                     "variable.reg": ["variable.reg.verilog"],
                     "variable.logic": ["variable.css.logic.verilog"],
                     "variable.param": ["entity.name.type.param.verilog"],
-                    "variable.sim": ["entity.name.tag.css.sim.verilog"]
+                    "variable.sim": ["entity.name.tag.css.sim.verilog"],
+                    "variable.inst": ["entity.name.type.module.verilog"]
                 }
             }
         ],

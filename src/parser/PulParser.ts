@@ -23,6 +23,7 @@ import { Id } from "./entity/Id";
 import { PulLinter } from "./PulLinter";
 import { Block } from "./entity/Block";
 import { InstanceGroup } from "./entity/InstanceGroup";
+import { Instance } from "./entity/Instance";
 
 let debug = false;
 let dtag = "[PulParser]";
@@ -136,6 +137,7 @@ export class PulParser implements SourceLoader, ModuleProvider {
                 case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
                 case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
                 case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
+                case "inst": source.sema_tokens.push(new SemaTokens(name, rng, "inst")); break;
                 case "block":
                 case "param": source.sema_tokens.push(new SemaTokens(name, rng, "param")); break;
                 default: source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
@@ -145,18 +147,29 @@ export class PulParser implements SourceLoader, ModuleProvider {
 
         for (let ref of ctx.references) {
             if (!(ref instanceof Id)) continue;
-            let symbol = ctx.find_symbol(ref.name, ref.root_beg);
-            let rng = ref.root_rng;
-            if (ref.origin) {
-                let name = ref.name;
-                switch (symbol?.kind) {
-                case "tri":
-                case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
-                case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
-                case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
-                case "block":
-                case "param": source.sema_tokens.push(new SemaTokens(name, rng, "param")); break;
-                default: source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
+            let parent = ctx;
+            for (let i = 0; i < ref.hiers.length; ++i) {
+                let id = ref.hiers[i];
+                let child = parent.find_symbol(id.name, (i == 0 ? id.root_beg : undefined));
+                let name = id.name;
+                let rng = id.root_rng;
+                if (id.origin) {
+                    switch (child?.kind) {
+                    case "tri":
+                    case "wire": source.sema_tokens.push(new SemaTokens(name, rng, "wire")); break;
+                    case "reg": source.sema_tokens.push(new SemaTokens(name, rng, "reg")); break;
+                    case "logic": source.sema_tokens.push(new SemaTokens(name, rng, "logic")); break;
+                    case "inst": source.sema_tokens.push(new SemaTokens(name, rng, "inst")); break;
+                    case "block":
+                    case "param": source.sema_tokens.push(new SemaTokens(name, rng, "param")); break;
+                    default: source.sema_tokens.push(new SemaTokens(name, rng, "sim")); break;
+                    }
+                }
+                if (!(child && child instanceof Context)) break;
+                parent = child;
+                if (child instanceof Instance) {
+                    let module = this.get_module(child.modu_name);
+                    if (module) parent = module;
                 }
             }
         }

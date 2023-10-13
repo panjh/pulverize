@@ -6,6 +6,7 @@ import { Instance } from '../parser/entity/Instance';
 import { Macro } from '../parser/entity/Macro';
 import { Entity } from '../parser/entity/Entity';
 import { Port } from '../parser/entity/Port';
+import { Context } from '../parser/entity/Context';
 
 let debug = false;
 let dtag = "[CompletionItemProvider]";
@@ -14,17 +15,19 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
     provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionItem[]> {
         let pos = document.offsetAt(position);
+        let word = document.lineAt(position).text.substring(0, position.character - 1).replace(/^.*\s/, "");
         let ch = context.triggerCharacter;
         let root = PulParser.inst().parse(document.uri.fsPath);
         if (!root) return null;
         let source = root.source as Source;
         let ctx = root.locate(position);
-        if (debug) console.log(`${dtag} pos ${position.line}:${position.character} char '${ch}' ctx '${ctx.name}'`);
+        if (debug) console.log(`${dtag} completion at pos ${position.line}:${position.character} char '${ch}' word '${word}' ctx '${ctx.name}'`);
 
         let items: vscode.CompletionItem[] = [];
-        if (ch === undefined) items = this.variable_items(ctx.get_symbols(pos), position);
+        if (ch === undefined) items = this.variable_items(ctx.get_symbols(pos));
         else if (ch == '`') items = this.macro_items(source.get_macros(pos));
         else if (ch == '.' && ctx instanceof Instance) items = this.port_items(ctx as Instance);
+        else if (ch == '.') items = this.child_items(ctx.find_symbol(word));
         return (items.length ? items : null);
     }
 
@@ -38,14 +41,12 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         return items;
     }
 
-    private variable_items(symbols: Entity[], position: vscode.Position): vscode.CompletionItem[] {
+    private variable_items(symbols: Entity[]): vscode.CompletionItem[] {
         let items: vscode.CompletionItem[] = [];
         for (let symbol of symbols) {
             let item = new vscode.CompletionItem(symbol.name, vscode.CompletionItemKind.Variable);
             item.documentation = new vscode.MarkdownString();
             item.documentation.appendCodeblock(symbol.to_string(), "verilog");
-            // let tri_rng = new vscode.Range(position.line, position.character-1, position.line, position.character);
-            // item.additionalTextEdits = [vscode.TextEdit.delete(tri_rng)];
             items.push(item);
         }
         return items;
@@ -88,6 +89,14 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             }
         }
         return items;
+    }
+
+    private child_items(symbol?: Entity): vscode.CompletionItem[] {
+        if (!(symbol && symbol instanceof Context)) return [];
+        let ctx: Context|undefined = symbol as Context;
+        if (ctx instanceof Instance) ctx = PulParser.inst().get_module(ctx.modu_name);
+        if (!ctx) return [];
+        return this.variable_items(ctx.get_symbols());
     }
 
 }
